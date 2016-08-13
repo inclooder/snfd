@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-project(mffs)
+project(snfd)
 enable_language(C)
 
 set(VERSION_MAJOR 1)
@@ -27,7 +27,7 @@ configure_file(
     ${PROJECT_BINARY_DIR}/config.h
     )
 
-add_library(mffs src/mffs.c)
+add_library(snfd src/snfd.c)
 
 
 # target to update git submodules
@@ -77,7 +77,7 @@ add_dependencies(unit_tests unity)
 target_link_libraries(
     unit_tests
     unity
-    mffs
+    snfd
     )
 
 

@@ -1,8 +1,8 @@
 # install libs
-install(TARGETS mffs DESTINATION mffs/lib)
+install(TARGETS snfd DESTINATION snfd/lib)
 
 # install headers
-install(FILES ${PROJECT_SOURCE_DIR}/src/mffs.h DESTINATION mffs/include)
+install(FILES ${PROJECT_SOURCE_DIR}/src/snfd.h DESTINATION snfd/include)
 
 # cpack
 include(InstallRequiredSystemLibraries)

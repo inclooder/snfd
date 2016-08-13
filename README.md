@@ -1,4 +1,4 @@
-# Mffs library
+# SNFD - Simple NAND flash driver
 
 ## How to build
 
