@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(snfd)
 enable_language(C)
 
-set(VERSION_MAJOR 1)
-set(VERSION_MINOR 0)
-set(VERSION_PATCH 0)
-
 # location of additional cmake modules
 set(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
@@ -16,15 +12,6 @@ set(CMAKE_MODULE_PATH
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_SOURCE_DIR}/src
-    )
-
-# get git hash
-include(git_revision)
-
-# configure header file
-configure_file(
-    ${PROJECT_SOURCE_DIR}/cmake/config.h.in
-    ${PROJECT_BINARY_DIR}/config.h
     )
 
 add_library(snfd src/snfd.c)
@@ -67,7 +54,7 @@ add_dependencies(unity update_submodules)
 # unit test executable
 add_executable(
     unit_tests
-    test/main.cpp
+    test/main.c
     )
 
 # unit test executable depends on unity
