@@ -3,6 +3,6 @@
 
 int main(){
     UNITY_BEGIN();
-    RUN_TEST(test_snfd_set_direct_write_func);
+    RUN_TEST(test_snfd_startup);
     return UNITY_END();
 }

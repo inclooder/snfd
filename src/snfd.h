@@ -3,11 +3,8 @@
 
 #include "snfd_types.h"
 
-
-
-
-SNFD_ERROR snfd_set_direct_write_func(SNFD_DEVICE * device, SNFD_DIRECT_WRITE_FUNC write_func);
-
+SNFD * snfd_startup(SNFD_CONFIG * config);
+void snfd_cleanup(SNFD * snfd);
 
 
 #endif /* end of include guard: MFFS_H */

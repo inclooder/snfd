@@ -1,9 +1,17 @@
 #include "snfd.h"
+#include <stdlib.h>
+#include <string.h>
 
 
-SNFD_ERROR snfd_set_direct_write_func(SNFD_DEVICE * device, SNFD_DIRECT_WRITE_FUNC write_func)
+SNFD * snfd_startup(SNFD_CONFIG * config)
 {
-    device->direct_write_func = write_func;
+    SNFD * snfd = (SNFD *)malloc(sizeof(SNFD));
+    memcpy(&snfd->config, config, sizeof(SNFD_CONFIG));
+    return snfd;
 }
 
+void snfd_cleanup(SNFD * snfd)
+{
+    free(snfd);
+}
 
