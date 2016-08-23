@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-project(snfd)
-enable_language(C)
+project(snfd C)
 
 # location of additional cmake modules
 set(CMAKE_MODULE_PATH
