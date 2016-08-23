@@ -21,7 +21,7 @@ guard :bundler do
 end
 
 guard :shell do
-  watch /(src\/.*)|(test\/.*)/ do
+  watch /^(src\/.*)|(test\/.*)$/ do
     `mkdir -p build`
     `cd build && cmake ..`
     `cd build && make`
