@@ -1,3 +1,6 @@
 [submodule "external/Unity"]
 	path = external/Unity
 	url = https://github.com/ThrowTheSwitch/Unity
+[submodule "external/nand-flash-emulator"]
+	path = external/nand-flash-emulator
+	url = https://github.com/inclooder/nand-flash-emulator
