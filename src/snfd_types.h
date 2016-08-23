@@ -35,15 +35,10 @@
 #define SNFD_ERROR_INVALID_PARAM 1
 
 // Direct functions
-typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC)
-(
-		SNFD_UINT32 destination, 
-		SNFD_UINT8 * source_buffer, 
-		SNFD_UINT32 count
-);
+typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC) (SNFD_UINT32 destination, SNFD_UINT8 * source_buffer, SNFD_UINT32 count);
 
 typedef struct {
-	SNFD_DIRECT_WRITE_FUNC direct_write_func;
-} SNFD_DEVICE;
+    snfd_direct_write_func direct_write_func;
+} snfd_device;
 
 #endif /* end of include guard: SNFD_TYPES_H */

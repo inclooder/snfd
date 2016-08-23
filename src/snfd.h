@@ -6,11 +6,7 @@
 
 
 
-SNFD_ERROR snfd_set_direct_write_func
-(
-		SNFD_DEVICE * device,
-		SNFD_DIRECT_WRITE_FUNC write_func
-);
+SNFD_ERROR snfd_set_direct_write_func(SNFD_DEVICE * device, SNFD_DIRECT_WRITE_FUNC write_func);
 
 
 

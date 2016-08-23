@@ -1,0 +1,11 @@
+# vim: set ft=dosini :
+
+root = true
+
+[*.{cpp,h}]
+
+indent_style = space
+indent_size = 4
+
+
+
