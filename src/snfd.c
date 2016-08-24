@@ -3,15 +3,15 @@
 #include <string.h>
 
 
-SNFD * snfd_startup(SNFD_CONFIG * config)
+SNFD_ERROR snfd_startup(SNFD * snfd)
 {
-    SNFD * snfd = (SNFD *)malloc(sizeof(SNFD));
-    memcpy(&snfd->config, config, sizeof(SNFD_CONFIG));
-    return snfd;
+    if(snfd_are_blocks_initialized(snfd))
+    {
+    }
+    return SNFD_ERROR_NO_ERROR;
 }
 
 void snfd_cleanup(SNFD * snfd)
 {
-    free(snfd);
 }
 

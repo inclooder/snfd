@@ -3,7 +3,7 @@
 
 #include "snfd_types.h"
 
-SNFD * snfd_startup(SNFD_CONFIG * config);
+SNFD_ERROR snfd_startup(SNFD * snfd);
 void snfd_cleanup(SNFD * snfd);
 
 
