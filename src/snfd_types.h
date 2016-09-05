@@ -41,6 +41,12 @@
 #define SNFD_ERROR_NO_ERROR 0
 #define SNFD_ERROR_INVALID_PARAM 1
 
+// Config
+
+#ifndef SNFD_EXCHANGE_BUFFER_SIZE
+#define SNFD_EXCHANGE_BUFFER_SIZE 128
+#endif
+
 #ifndef SNFD_MAGIC_NUMBER_SIZE
 #define SNFD_MAGIC_NUMBER_SIZE 16
 #endif
@@ -65,6 +71,7 @@ typedef struct {
 
 typedef struct {
     SNFD_CONFIG config;
+    SNFD_UINT8 buffer[SNFD_EXCHANGE_BUFFER_SIZE];
 } SNFD;
 
 

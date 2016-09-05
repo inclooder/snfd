@@ -4,24 +4,26 @@
 #include "unity.h"
 #include "snfd.h"
 #include "nfe.h"
+#include "test_support.h"
 
-NFE_FLASH * flash;
 
-SNFD_ERROR flash_write_func (SNFD_UINT32 destination, SNFD_UINT8 * source, SNFD_UINT32 size)
+void test_snfd_initialize_blocks(void)
 {
-    nfe_write(flash, destination, source, size);
-}
+    flash = nfe_create_flash(10, 200);
+    nfe_clear_flash(flash, 0xFF);
 
-SNFD_ERROR flash_read_func (SNFD_UINT32 source, SNFD_UINT8 * destination, SNFD_UINT32 size)
-{
-    nfe_read(flash, destination, source, size);
-}
+    SNFD snfd;
+    snfd.config.write_func = flash_write_func;
+    snfd.config.read_func = flash_read_func;
+    snfd.config.block_erase_func = flash_block_erase_func;
+    snfd.config.block_count = 10;
+    snfd.config.block_size = 200;
 
-SNFD_ERROR flash_block_erase_func (SNFD_UINT16 block_number)
-{
-    nfe_erase_block(flash, block_number);
-}
+    // TODO
 
+
+    nfe_destroy_flash(flash);
+}
 
 void test_snfd_are_blocks_initialized_1(void)
 {
