@@ -1,6 +1,8 @@
 #ifndef SNFD_TYPES_H
 #define SNFD_TYPES_H
 
+#include "snfd_config.h"
+
 // Basic types
 
 #ifndef SNFD_INIT32
@@ -40,20 +42,6 @@
 #define SNFD_ERROR SNFD_UINT16
 #define SNFD_ERROR_NO_ERROR 0
 #define SNFD_ERROR_INVALID_PARAM 1
-
-// Config
-
-#ifndef SNFD_EXCHANGE_BUFFER_SIZE
-#define SNFD_EXCHANGE_BUFFER_SIZE 128
-#endif
-
-#ifndef SNFD_MAGIC_NUMBER_SIZE
-#define SNFD_MAGIC_NUMBER_SIZE 16
-#endif
-
-#ifndef SNFD_MAGIC_NUMBER
-#define SNFD_MAGIC_NUMBER "SNFDgandevedidx5"
-#endif
 
 // Direct functions
 typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC) (SNFD_UINT32 destination, SNFD_UINT8 * source, SNFD_UINT32 size);
