@@ -7,20 +7,11 @@
  */
 void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
 {
-    // Write magic number at the beginning.
-    snfd->config.write_func(block_number * SNFD_BLOCK_SIZE, SNFD_MAGIC_NUMBER, SNFD_MAGIC_NUMBER_SIZE);
+    SNFD_BLOCK_HEADER header;
+    memcpy(header.magic_number, SNFD_MAGIC_NUMBER, sizeof(header.magic_number));
+    header.state = SNFD_BLOCK_FREE;
 
-    SNFD_UINT32 bytes_writen = 0;
-    bytes_writen += SNFD_MAGIC_NUMBER_SIZE;
-
-    SNFD_UINT32 block_free_status = SNFD_BLOCK_FREE;
-
-    // Set block state as FREE
-    snfd->config.write_func(
-            (block_number * SNFD_BLOCK_SIZE) + bytes_writen,
-            &block_free_status,
-            sizeof(block_free_status)
-    );
+    snfd->config.write_func(block_number * SNFD_BLOCK_SIZE, &header, sizeof(header));
 }
 
 /*
