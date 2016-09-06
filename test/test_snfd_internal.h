@@ -1,5 +1,4 @@
 #ifndef TEST_SNFD_INTERNAL_H
-
 #define TEST_SNFD_INTERNAL_H
 
 #include "unity.h"
@@ -34,19 +33,16 @@ void test_snfd_calc_read_size_4(void)
 
 void test_snfd_check_block_pattern(void)
 {
-    flash = nfe_create_flash(10, 10);
+    flash = nfe_create_flash(256, 4096);
     nfe_clear_flash(flash, 0xFF);
-
-    SNFD_UINT8 memory[10] = { 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02 };
-    nfe_write(flash, 20, memory, 10);
-    SNFD_UINT8 pattern[2] = { 0x01, 0x02 };
 
     SNFD snfd;
     snfd.config.write_func = flash_write_func;
     snfd.config.read_func = flash_read_func;
     snfd.config.block_erase_func = flash_block_erase_func;
-    snfd.config.block_count = 10;
-    snfd.config.block_size = 10;
+
+    SNFD_UINT8 pattern[2] = { 0x01, 0x02 };
+    snfd_write_block_pattern(&snfd, 2, pattern, sizeof(pattern));
 
     SNFD_BOOL result = snfd_check_block_pattern(&snfd, 2, pattern, sizeof(pattern));
     TEST_ASSERT_EQUAL(SNFD_TRUE, result);
@@ -56,15 +52,13 @@ void test_snfd_check_block_pattern(void)
 
 void test_snfd_write_block_pattern(void)
 {
-    flash = nfe_create_flash(10, 10);
+    flash = nfe_create_flash(256, 4096);
     nfe_clear_flash(flash, 0xFF);
 
     SNFD snfd;
     snfd.config.write_func = flash_write_func;
     snfd.config.read_func = flash_read_func;
     snfd.config.block_erase_func = flash_block_erase_func;
-    snfd.config.block_count = 10;
-    snfd.config.block_size = 10;
 
 
     SNFD_UINT8 pattern[2] = { 0x32, 0xF1 };
@@ -77,15 +71,13 @@ void test_snfd_write_block_pattern(void)
 
 void test_snfd_check_block(void)
 {
-    flash = nfe_create_flash(10, 10);
+    flash = nfe_create_flash(256, 4096);
     nfe_clear_flash(flash, 0xFF);
 
     SNFD snfd;
     snfd.config.write_func = flash_write_func;
     snfd.config.read_func = flash_read_func;
     snfd.config.block_erase_func = flash_block_erase_func;
-    snfd.config.block_count = 10;
-    snfd.config.block_size = 10;
 
     SNFD_BOOL result = snfd_check_block(&snfd, 5);
     TEST_ASSERT_EQUAL(SNFD_TRUE, result);

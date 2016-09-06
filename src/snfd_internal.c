@@ -8,7 +8,7 @@
 void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
 {
     // Write magic number at the beginning.
-    snfd->config.write_func(block_number * snfd->config.block_size, SNFD_MAGIC_NUMBER, SNFD_MAGIC_NUMBER_SIZE);
+    snfd->config.write_func(block_number * SNFD_BLOCK_SIZE, SNFD_MAGIC_NUMBER, SNFD_MAGIC_NUMBER_SIZE);
 
     SNFD_UINT32 bytes_writen = 0;
     bytes_writen += SNFD_MAGIC_NUMBER_SIZE;
@@ -17,7 +17,7 @@ void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
 
     // Set block state as FREE
     snfd->config.write_func(
-            (block_number * snfd->config.block_size) + bytes_writen,
+            (block_number * SNFD_BLOCK_SIZE) + bytes_writen,
             &block_free_status,
             sizeof(block_free_status)
     );
@@ -30,10 +30,10 @@ void snfd_write_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void 
 {
     SNFD_UINT32 current_pattern = 0;
     SNFD_UINT32 i;
-    for(i = 0; i < snfd->config.block_size;) // For each byte in the block
+    for(i = 0; i < SNFD_BLOCK_SIZE;) // For each byte in the block
     {
-        SNFD_UINT32 write_size = snfd_calc_read_size(sizeof(snfd->buffer), snfd->config.block_size, i); // Calc how much memory to write
-        SNFD_UINT32 write_loc = (block_number * snfd->config.block_size) + i; // Calc write location
+        SNFD_UINT32 write_size = snfd_calc_read_size(sizeof(snfd->buffer), SNFD_BLOCK_SIZE, i); // Calc how much memory to write
+        SNFD_UINT32 write_loc = (block_number * SNFD_BLOCK_SIZE) + i; // Calc write location
         SNFD_UINT32 j;
         for(j = 0; j < write_size; ++j) // Write each byte to the buffer
         {
@@ -53,10 +53,10 @@ SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const 
 {
     SNFD_UINT32 current_pattern = 0;
     SNFD_UINT32 i;
-    for(i = 0; i < snfd->config.block_size;)
+    for(i = 0; i < SNFD_BLOCK_SIZE;)
     {
-        SNFD_UINT32 read_size = snfd_calc_read_size(sizeof(snfd->buffer), snfd->config.block_size, i);
-        SNFD_UINT32 read_loc = (block_number * snfd->config.block_size) + i;
+        SNFD_UINT32 read_size = snfd_calc_read_size(sizeof(snfd->buffer), SNFD_BLOCK_SIZE, i);
+        SNFD_UINT32 read_loc = (block_number * SNFD_BLOCK_SIZE) + i;
         snfd->config.read_func(read_loc, snfd->buffer, read_size);
         SNFD_UINT32 j;
         for(j = 0; j < read_size; ++j)
