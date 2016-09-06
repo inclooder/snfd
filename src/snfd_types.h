@@ -44,11 +44,13 @@
 #define SNFD_ERROR_INVALID_PARAM 1
 
 // Direct functions
-typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC) (SNFD_UINT32 destination, SNFD_UINT8 * source, SNFD_UINT32 size);
-typedef SNFD_ERROR (*SNFD_DIRECT_READ_FUNC) (SNFD_UINT32 source, SNFD_UINT8 * destination, SNFD_UINT32 size);
+
+typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC) (SNFD_UINT32 destination, void * source, SNFD_UINT32 size);
+typedef SNFD_ERROR (*SNFD_DIRECT_READ_FUNC) (SNFD_UINT32 source, void * destination, SNFD_UINT32 size);
 typedef SNFD_ERROR (*SNFD_DIRECT_BLOCK_ERASE_FUNC) (SNFD_UINT16 block_number);
 
 // SNFD configuration structure
+
 typedef struct {
     SNFD_DIRECT_WRITE_FUNC write_func;
     SNFD_DIRECT_READ_FUNC read_func;
@@ -57,10 +59,18 @@ typedef struct {
     SNFD_UINT32 block_size;
 } SNFD_CONFIG;
 
+// Main struct
+
 typedef struct {
     SNFD_CONFIG config;
     SNFD_UINT8 buffer[SNFD_EXCHANGE_BUFFER_SIZE];
 } SNFD;
+
+// Block states
+
+#define SNFD_BLOCK_FREE 1
+#define SNFD_BLOCK_DIRTY 2
+#define SNFD_BLOCK_CLEAN 4
 
 
 #endif /* end of include guard: SNFD_TYPES_H */

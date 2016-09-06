@@ -3,25 +3,24 @@
 #include <stdio.h>
 
 /*
- * Go trough entire flash and check if are there blocks that start with the magic number.
+ * Initialize an empty block, you need to erase it first.
  */
-SNFD_BOOL snfd_are_blocks_initialized(SNFD * snfd)
+void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
 {
-    unsigned char buff[4] = { 'T', 'E', 'S', 'T' };
-    unsigned char read_buff[4] = { 0 };
-    snfd->config.read_func(0, read_buff, 4);
-    if(memcmp(buff, read_buff, 4) == 0){
-        return SNFD_TRUE;
-    } else {
-        return SNFD_FALSE;
-    }
-}
+    // Write magic number at the beginning.
+    snfd->config.write_func(block_number * snfd->config.block_size, SNFD_MAGIC_NUMBER, SNFD_MAGIC_NUMBER_SIZE);
 
+    SNFD_UINT32 bytes_writen = 0;
+    bytes_writen += SNFD_MAGIC_NUMBER_SIZE;
 
-SNFD_BOOL snfd_initialize_blocks(SNFD * snfd)
-{
-    char buff[4] = { 'T', 'E', 'S', 'T' };
-    snfd->config.write_func(0, buff, 4);
+    SNFD_UINT32 block_free_status = SNFD_BLOCK_FREE;
+
+    // Set block state as FREE
+    snfd->config.write_func(
+            (block_number * snfd->config.block_size) + bytes_writen,
+            &block_free_status,
+            sizeof(block_free_status)
+    );
 }
 
 /*
@@ -31,19 +30,19 @@ void snfd_write_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void 
 {
     SNFD_UINT32 current_pattern = 0;
     SNFD_UINT32 i;
-    for(i = 0; i < snfd->config.block_size;)
+    for(i = 0; i < snfd->config.block_size;) // For each byte in the block
     {
-        SNFD_UINT32 write_size = snfd_calc_read_size(sizeof(snfd->buffer), snfd->config.block_size, i);
-        SNFD_UINT32 write_loc = (block_number * snfd->config.block_size) + i;
+        SNFD_UINT32 write_size = snfd_calc_read_size(sizeof(snfd->buffer), snfd->config.block_size, i); // Calc how much memory to write
+        SNFD_UINT32 write_loc = (block_number * snfd->config.block_size) + i; // Calc write location
         SNFD_UINT32 j;
-        for(j = 0; j < write_size; ++j)
+        for(j = 0; j < write_size; ++j) // Write each byte to the buffer
         {
             SNFD_UINT8 byte = ((SNFD_UINT8 *)pattern)[current_pattern];
             snfd->buffer[j] = byte;
-            current_pattern = (current_pattern + 1) % pattern_size;
+            current_pattern = (current_pattern + 1) % pattern_size; // Set next pattern
         }
-        snfd->config.write_func(write_loc, snfd->buffer, write_size);
-        i += write_size;
+        snfd->config.write_func(write_loc, snfd->buffer, write_size); // Write prepared buffer to the flash memory
+        i += write_size; // Move forward by number of bytes writen
     }
 }
 

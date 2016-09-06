@@ -3,8 +3,7 @@
 
 #include "snfd_types.h"
 
-SNFD_BOOL snfd_check_if_blocks_are_initialized(SNFD * snfd);
-SNFD_BOOL snfd_initialize_blocks(SNFD * snfd);
+void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number);
 SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_UINT16 block_number);
 SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void * pattern, SNFD_UINT16 pattern_size);
 void snfd_write_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void * pattern, SNFD_UINT16 pattern_size);
