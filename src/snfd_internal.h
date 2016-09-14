@@ -3,6 +3,14 @@
 
 #include "snfd_types.h"
 
+SNFD_BOOL snfd_is_block_broken(SNFD * snfd, SNFD_BLOCK_HEADER * header);
+SNFD_BOOL snfd_is_block_free(SNFD * snfd, SNFD_BLOCK_HEADER * header);
+SNFD_BOOL snfd_is_block_clean(SNFD * snfd, SNFD_BLOCK_HEADER * header);
+SNFD_BOOL snfd_is_block_dirty(SNFD * snfd, SNFD_BLOCK_HEADER * header);
+SNFD_BOOL snfd_is_block_initialized(SNFD * snfd, SNFD_BLOCK_HEADER * header);
+
+void snfd_read_block_header(SNFD * snfd, SNFD_UINT16 block_number, SNFD_BLOCK_HEADER * header);
+
 void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number);
 SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_UINT16 block_number);
 SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void * pattern, SNFD_UINT16 pattern_size);

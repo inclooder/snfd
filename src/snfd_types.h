@@ -46,10 +46,13 @@
 // Available transitions
 // FREE -> CLEAN
 // CLEAN -> DIRTY
-// DIRTY -> FREE
+// DIRTY -> FREE (erase needed)
+// * -> BROKEN
+
 #define SNFD_BLOCK_FREE 1
 #define SNFD_BLOCK_CLEAN 3
 #define SNFD_BLOCK_DIRTY 7
+#define SNFD_BLOCK_BROKEN 255
 
 // Direct functions
 typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC) (SNFD_UINT32 destination, void * source, SNFD_UINT32 size);
@@ -84,7 +87,7 @@ typedef struct {
 
 // Block struct
 typedef struct {
-    SNFD_UINT32 state; // FREE, DIRTY or CLEAN
+    SNFD_UINT32 state; // FREE, DIRTY, CLEAN or BROKEN
 } SNFD_BLOCK;
 
 // Main struct

@@ -3,10 +3,11 @@
 #include <stdio.h>
 
 /*
- * Initialize an empty block, you need to erase it first.
+ * Erase and initialize block.
  */
 void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
 {
+    snfd_direct_block_erase(snfd, block_number);
     SNFD_BLOCK_HEADER header;
     memcpy(header.magic_number, SNFD_MAGIC_NUMBER, sizeof(header.magic_number));
     header.state = SNFD_BLOCK_FREE;
@@ -84,4 +85,35 @@ SNFD_UINT32 snfd_calc_read_size(SNFD_UINT32 read_buffer_size, SNFD_UINT32 block_
     SNFD_UINT32 read_size = read_buffer_size;
     if(read_size > block_size) read_size = block_size;
     return read_size;
+}
+
+SNFD_BOOL snfd_is_block_broken(SNFD * snfd, SNFD_BLOCK_HEADER * header)
+{
+    return header->state == SNFD_BLOCK_BROKEN;
+}
+
+SNFD_BOOL snfd_is_block_free(SNFD * snfd, SNFD_BLOCK_HEADER * header)
+{
+    return header->state == SNFD_BLOCK_FREE;
+}
+
+SNFD_BOOL snfd_is_block_clean(SNFD * snfd, SNFD_BLOCK_HEADER * header)
+{
+    return header->state == SNFD_BLOCK_CLEAN;
+}
+
+SNFD_BOOL snfd_is_block_dirty(SNFD * snfd, SNFD_BLOCK_HEADER * header)
+{
+    return header->state == SNFD_BLOCK_DIRTY;
+}
+
+void snfd_read_block_header(SNFD * snfd, SNFD_UINT16 block_number, SNFD_BLOCK_HEADER * header)
+{
+    snfd_direct_read(snfd, block_number * SNFD_BLOCK_SIZE, header, sizeof(header));
+}
+
+
+SNFD_BOOL snfd_is_block_initialized(SNFD * snfd, SNFD_BLOCK_HEADER * header)
+{
+    return memcmp(header->magic_number, SNFD_MAGIC_NUMBER, SNFD_MAGIC_NUMBER_SIZE) == 0;
 }
