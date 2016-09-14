@@ -79,15 +79,18 @@ typedef struct {
     SNFD_UINT8 flags;
 } __attribute__((packed)) SNFD_FRAGMENT;
 
+typedef SNFD_UINT8 BLOCK_STATE;
+
 // Block header struct
+
 typedef struct {
     SNFD_UINT8 magic_number[SNFD_MAGIC_NUMBER_SIZE];
-    SNFD_UINT8 state;
+    BLOCK_STATE state;
 } __attribute__((packed)) SNFD_BLOCK_HEADER;
 
 // Block struct
 typedef struct {
-    SNFD_UINT32 state; // FREE, DIRTY, CLEAN or BROKEN
+    BLOCK_STATE state; // FREE, DIRTY, CLEAN or BROKEN
 } SNFD_BLOCK;
 
 // Main struct
