@@ -79,18 +79,18 @@ typedef struct {
     SNFD_UINT8 flags;
 } __attribute__((packed)) SNFD_FRAGMENT;
 
-typedef SNFD_UINT8 BLOCK_STATE;
+typedef SNFD_UINT8 SNFD_BLOCK_STATE;
 
 // Block header struct
 
 typedef struct {
     SNFD_UINT8 magic_number[SNFD_MAGIC_NUMBER_SIZE];
-    BLOCK_STATE state;
+    SNFD_BLOCK_STATE state;
 } __attribute__((packed)) SNFD_BLOCK_HEADER;
 
 // Block struct
 typedef struct {
-    BLOCK_STATE state; // FREE, DIRTY, CLEAN or BROKEN
+    SNFD_BLOCK_STATE state; // FREE, DIRTY, CLEAN or BROKEN
 } SNFD_BLOCK;
 
 // Main struct
@@ -99,5 +99,18 @@ typedef struct {
     SNFD_UINT8 buffer[SNFD_EXCHANGE_BUFFER_SIZE];
     SNFD_BLOCK blocks[SNFD_BLOCKS_COUNT];
 } SNFD;
+
+typedef SNFD_UINT16 SNFD_FILE_NUMBER;
+typedef SNFD_UINT8 SNFD_FILE_OPERATION;
+
+// Log struct
+typedef struct {
+    SNFD_FILE_NUMBER file_number;
+    SNFD_FILE_OPERATION file_operation;
+    SNFD_UINT8 flags;
+    SNFD_UINT32 data_size;
+    SNFD_UINT32 next_log;
+} __attribute__((packed)) SNFD_LOG;
+
 
 #endif /* end of include guard: SNFD_TYPES_H */
