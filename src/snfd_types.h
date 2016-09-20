@@ -49,10 +49,15 @@
 // DIRTY -> FREE (erase needed)
 // * -> BROKEN
 
-#define SNFD_BLOCK_FREE 1
-#define SNFD_BLOCK_CLEAN 3
-#define SNFD_BLOCK_DIRTY 7
-#define SNFD_BLOCK_BROKEN 255
+#define SNFD_BLOCK_FREE 0xFF
+#define SNFD_BLOCK_CLEAN 0xFE
+#define SNFD_BLOCK_DIRTY 0xFC
+#define SNFD_BLOCK_BROKEN 0xF8
+#define SNFD_BLOCK_UNUSED_1 0xF0
+#define SNFD_BLOCK_UNUSED_2 0xE0
+#define SNFD_BLOCK_UNUSED_3 0xC0
+#define SNFD_BLOCK_UNUSED_4 0x80
+#define SNFD_BLOCK_UNUSED_5 0x00
 
 // Direct functions
 typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC) (SNFD_UINT32 destination, void * source, SNFD_UINT32 size);
@@ -103,11 +108,34 @@ typedef struct {
 typedef SNFD_UINT16 SNFD_FILE_NUMBER;
 typedef SNFD_UINT8 SNFD_FILE_OPERATION;
 
+//File operations
+#define SNFD_LOG_OPERATION_SET 0xFF
+#define SNFD_LOG_OPERATION_UNUSED_1 0xFE
+#define SNFD_LOG_OPERATION_UNUSED_2 0xFC
+#define SNFD_LOG_OPERATION_UNUSED_3 0xF8
+#define SNFD_LOG_OPERATION_UNUSED_4 0xF0
+#define SNFD_LOG_OPERATION_UNUSED_5 0xE0
+#define SNFD_LOG_OPERATION_UNUSED_6 0xC0
+#define SNFD_LOG_OPERATION_UNUSED_7 0x80
+#define SNFD_LOG_OPERATION_UNUSED_8 0x00
+
+//Log flags
+#define SNFD_LOG_ACTIVE 0xFF
+#define SNFD_LOG_OBSOLETE 0xFE
+#define SNFD_LOG_UNUSED_1 0xFC
+#define SNFD_LOG_UNUSED_2 0xF8
+#define SNFD_LOG_UNUSED_3 0xF0
+#define SNFD_LOG_UNUSED_4 0xE0
+#define SNFD_LOG_UNUSED_5 0xC0
+#define SNFD_LOG_UNUSED_6 0x80
+#define SNFD_LOG_UNUSED_7 0x00
+
 // Log struct
 typedef struct {
     SNFD_FILE_NUMBER file_number;
     SNFD_FILE_OPERATION file_operation;
     SNFD_UINT8 flags;
+    SNFD_UINT32 start_loc;
     SNFD_UINT32 data_size;
     SNFD_UINT32 next_log;
 } __attribute__((packed)) SNFD_LOG;

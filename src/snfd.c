@@ -81,11 +81,26 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
         if(state != SNFD_BLOCK_CLEAN && state != SNFD_BLOCK_FREE) continue;
         tmp_write_loc = find_free_log_in_block(snfd, i);
         free_size = SNFD_BLOCK_SIZE - tmp_write_loc - sizeof(SNFD_LOG);
+        /*
+         * Check if this location is better
+         */
         if(free_size >= size && (last_free_size - size) <= free_size)
         {
             last_free_size = free_size;
             write_loc = tmp_write_loc;
         }
     }
+    SNFD_LOG log;
+    log.file_number = file_nr;
+    log.file_operation = SNFD_LOG_OPERATION_SET;
+    log.flags = SNFD_LOG_ACTIVE;
+    log.start_loc = destination;
+    log.data_size = size;
+    log.next_log = 0;
+
+    snfd_direct_write(snfd, write_loc, &log, sizeof(log));
+    snfd_direct_write(snfd, write_loc + sizeof(log), source, size);
+    // TODO: check if write succeded
+
     // TODO:
 }
