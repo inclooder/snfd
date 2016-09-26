@@ -9,31 +9,45 @@ void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
 {
     snfd_direct_block_erase(snfd, block_number);
     SNFD_BLOCK_HEADER header;
-    memcpy(header.magic_number, SNFD_MAGIC_NUMBER, sizeof(header.magic_number));
+    memcpy(header.magic_number, 
+           SNFD_MAGIC_NUMBER,
+           sizeof(header.magic_number));
+
     header.state = SNFD_BLOCK_FREE;
 
-    snfd_direct_write(snfd, block_number * SNFD_BLOCK_SIZE, &header, sizeof(header));
+    snfd_direct_write(snfd, block_number * SNFD_BLOCK_SIZE,
+                      &header, sizeof(header));
 }
 
 /*
  * Writes a pattern to the block
  */
-void snfd_write_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void * pattern, SNFD_UINT16 pattern_size)
+void snfd_write_block_pattern(SNFD * snfd, 
+                              SNFD_UINT16 block_number, 
+                              const void * pattern, 
+                              SNFD_UINT16 pattern_size)
 {
     SNFD_UINT32 current_pattern = 0;
     SNFD_UINT32 i;
     for(i = 0; i < SNFD_BLOCK_SIZE;) // For each byte in the block
     {
-        SNFD_UINT32 write_size = snfd_calc_read_size(sizeof(snfd->buffer), SNFD_BLOCK_SIZE, i); // Calc how much memory to write
-        SNFD_UINT32 write_loc = (block_number * SNFD_BLOCK_SIZE) + i; // Calc write location
+        // Calc how much memory to write
+        SNFD_UINT32 write_size = snfd_calc_read_size(
+                sizeof(snfd->buffer), 
+                SNFD_BLOCK_SIZE, i
+        );
+        // Calc write location
+        SNFD_UINT32 write_loc = (block_number * SNFD_BLOCK_SIZE) + i;
         SNFD_UINT32 j;
         for(j = 0; j < write_size; ++j) // Write each byte to the buffer
         {
             SNFD_UINT8 byte = ((SNFD_UINT8 *)pattern)[current_pattern];
             snfd->buffer[j] = byte;
-            current_pattern = (current_pattern + 1) % pattern_size; // Set next pattern
+             // Set next pattern
+            current_pattern = (current_pattern + 1) % pattern_size;
         }
-        snfd_direct_write(snfd, write_loc, snfd->buffer, write_size); // Write prepared buffer to the flash memory
+        // Write prepared buffer to the flash memory
+        snfd_direct_write(snfd, write_loc, snfd->buffer, write_size);
         i += write_size; // Move forward by number of bytes writen
     }
 }
@@ -41,13 +55,19 @@ void snfd_write_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void 
 /*
  * Checks if block follows specific pattern
  */
-SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, SNFD_UINT16 block_number, const void * pattern, SNFD_UINT16 pattern_size)
+SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, 
+                                   SNFD_UINT16 block_number, 
+                                   const void * pattern, 
+                                   SNFD_UINT16 pattern_size)
 {
     SNFD_UINT32 current_pattern = 0;
     SNFD_UINT32 i;
     for(i = 0; i < SNFD_BLOCK_SIZE;)
     {
-        SNFD_UINT32 read_size = snfd_calc_read_size(sizeof(snfd->buffer), SNFD_BLOCK_SIZE, i);
+        SNFD_UINT32 read_size = snfd_calc_read_size(
+                sizeof(snfd->buffer), 
+                SNFD_BLOCK_SIZE, i
+        );
         SNFD_UINT32 read_loc = (block_number * SNFD_BLOCK_SIZE) + i;
         snfd_direct_read(snfd, read_loc, snfd->buffer, read_size);
         SNFD_UINT32 j;
@@ -71,7 +91,12 @@ SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_UINT16 block_number)
 {
     snfd_direct_block_erase(snfd, block_number);
     const SNFD_UINT8 clean_block_pattern[1] = { 0xFF };
-    SNFD_BOOL result = snfd_check_block_pattern(snfd, block_number, clean_block_pattern, sizeof(clean_block_pattern));
+    SNFD_BOOL result = snfd_check_block_pattern(
+            snfd, 
+            block_number, 
+            clean_block_pattern,
+            sizeof(clean_block_pattern)
+    );
     if(result != SNFD_TRUE) return SNFD_FALSE;
 
     const SNFD_UINT8 pattern[4] = { 0x5A, 0x55, 0x5A, 0x55 };
@@ -79,7 +104,9 @@ SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_UINT16 block_number)
     return snfd_check_block_pattern(snfd, block_number, pattern, sizeof(pattern));
 }
 
-SNFD_UINT32 snfd_calc_read_size(SNFD_UINT32 read_buffer_size, SNFD_UINT32 block_size, SNFD_UINT32 offset)
+SNFD_UINT32 snfd_calc_read_size(SNFD_UINT32 read_buffer_size, 
+                                SNFD_UINT32 block_size, 
+                                SNFD_UINT32 offset)
 {
     block_size = block_size - offset;
     SNFD_UINT32 read_size = read_buffer_size;
@@ -107,7 +134,9 @@ SNFD_BOOL snfd_is_block_dirty(SNFD * snfd, SNFD_BLOCK_HEADER * header)
     return header->state == SNFD_BLOCK_DIRTY;
 }
 
-void snfd_read_block_header(SNFD * snfd, SNFD_UINT16 block_number, SNFD_BLOCK_HEADER * header)
+void snfd_read_block_header(SNFD * snfd, 
+                            SNFD_UINT16 block_number, 
+                            SNFD_BLOCK_HEADER * header)
 {
     snfd_direct_read(snfd, block_number * SNFD_BLOCK_SIZE, header, sizeof(header));
 }

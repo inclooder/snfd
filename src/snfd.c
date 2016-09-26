@@ -16,8 +16,8 @@ SNFD_ERROR snfd_startup(SNFD * snfd)
     {
         snfd_read_block_header(snfd, i, &header);
         block_state = header.state;
-        if(!snfd_is_block_initialized(snfd, i) ||
-                snfd_is_block_broken(snfd, i))
+        if(!snfd_is_block_initialized(snfd, &header) ||
+                snfd_is_block_broken(snfd, &header))
         {
             if(snfd_check_block(snfd, i))
             {
@@ -40,7 +40,8 @@ void snfd_cleanup(SNFD * snfd)
  * Finds first free log in the block.
  * Block must be initialized.
  */
-SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd, SNFD_UINT16 block_number)
+SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd,
+                                        SNFD_UINT16 block_number)
 {
     SNFD_UINT32 next_log_loc = (block_number * SNFD_BLOCK_SIZE) + sizeof(SNFD_BLOCK_HEADER);
     SNFD_LOG log;
@@ -101,6 +102,7 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     snfd_direct_write(snfd, write_loc, &log, sizeof(log));
     snfd_direct_write(snfd, write_loc + sizeof(log), source, size);
     // TODO: check if write succeded
+
 
     // TODO:
 }
