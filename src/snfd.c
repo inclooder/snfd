@@ -21,7 +21,7 @@ SNFD_ERROR snfd_startup(SNFD * snfd)
         {
             if(snfd_check_block(snfd, i))
             {
-                snfd_initialize_block(snfd, i);
+                snfd_erase_and_initialize_block(snfd, i);
                 block_state = SNFD_BLOCK_FREE;
             } else {
                 block_state = SNFD_BLOCK_BROKEN;
@@ -67,6 +67,8 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
                            SNFD_UINT32 destination, 
                            void * source, SNFD_UINT32 size)
 {
+    // TODO: Split into two write operations if size > SNFD_BLOCK_SIZE - sizeof(SNFD_BLOCK_HEADER)
+
     SNFD_UINT32 i;
     SNFD_BLOCK_STATE state;
     SNFD_UINT32 write_loc = 0;
@@ -83,14 +85,23 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
         tmp_write_loc = find_free_log_in_block(snfd, i);
         free_size = SNFD_BLOCK_SIZE - tmp_write_loc - sizeof(SNFD_LOG);
         /*
-         * Check if this location is better
+         * Check if this location is better or it's the first location we found.
          */
-        if(free_size >= size && (last_free_size - size) <= free_size)
+        if(last_free_size == 0 || 
+           (free_size >= size && last_free_size >= free_size))
         {
             last_free_size = free_size;
             write_loc = tmp_write_loc;
+            if(last_free_size - size <= 10)
+            {
+                break;
+            }
         }
     }
+    if(write_loc == 0){
+        return SNFD_ERROR_NO_SPACE_LEFT;
+    }
+    
     SNFD_LOG log;
     log.file_number = file_nr;
     log.file_operation = SNFD_LOG_OPERATION_SET;
@@ -103,6 +114,14 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     snfd_direct_write(snfd, write_loc + sizeof(log), source, size);
     // TODO: check if write succeded
 
-
-    // TODO:
+    if(state == SNFD_BLOCK_FREE){
+        //change state to SNFD_CLEAN
+        SNFD_BLOCK_HEADER block_header;
+        snfd_read_block_header(snfd, i, &block_header);
+        block_header.state = SNFD_BLOCK_CLEAN;
+        snfd_direct_write(snfd, i * SNFD_BLOCK_SIZE,
+                          &block_header,
+                          sizeof(block_header));
+        snfd->blocks[i].state = SNFD_BLOCK_CLEAN;
+    }
 }

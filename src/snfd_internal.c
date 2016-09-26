@@ -5,7 +5,7 @@
 /*
  * Erase and initialize block.
  */
-void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
+void snfd_erase_and_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
 {
     snfd_direct_block_erase(snfd, block_number);
     SNFD_BLOCK_HEADER header;

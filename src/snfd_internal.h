@@ -14,7 +14,7 @@ void snfd_read_block_header(SNFD * snfd,
                             SNFD_UINT16 block_number,
                             SNFD_BLOCK_HEADER * header);
 
-void snfd_initialize_block(SNFD * snfd, SNFD_UINT16 block_number);
+void snfd_erase_and_initialize_block(SNFD * snfd, SNFD_UINT16 block_number);
 SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_UINT16 block_number);
 SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, 
                                    SNFD_UINT16 block_number,

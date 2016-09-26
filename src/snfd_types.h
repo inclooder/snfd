@@ -41,6 +41,7 @@
 #define SNFD_ERROR SNFD_UINT16
 #define SNFD_ERROR_NO_ERROR 0
 #define SNFD_ERROR_INVALID_PARAM 1
+#define SNFD_ERROR_NO_SPACE_LEFT 2
 
 // Block states
 // Available transitions
