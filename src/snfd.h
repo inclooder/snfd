@@ -10,6 +10,7 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
                            SNFD_UINT32 destination, 
                            void * source, SNFD_UINT32 size);
 
+
 void snfd_cleanup(SNFD * snfd);
 
 

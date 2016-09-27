@@ -146,3 +146,8 @@ SNFD_BOOL snfd_is_block_initialized(SNFD * snfd, SNFD_BLOCK_HEADER * header)
 {
     return memcmp(header->magic_number, SNFD_MAGIC_NUMBER, SNFD_MAGIC_NUMBER_SIZE) == 0;
 }
+
+SNFD_BOOL snfd_log_is_invalid(SNFD_LOG * log)
+{
+    return log->file_number == 0xFFFF || log->state == SNFD_LOG_INVALID;
+}

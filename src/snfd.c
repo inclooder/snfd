@@ -39,6 +39,7 @@ void snfd_cleanup(SNFD * snfd)
 /*
  * Finds first free log in the block.
  * Block must be initialized.
+ * Returns 0 if block was not found.
  */
 SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd,
                                         SNFD_UINT16 block_number)
@@ -48,13 +49,51 @@ SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd,
     while(next_log_loc < SNFD_BLOCK_SIZE)
     {
         snfd_direct_read(snfd, next_log_loc, &log, sizeof(log));
-        if(log.file_number == 0xFFFF)
+        if(snfd_log_is_invalid(&log))
         {
             return next_log_loc;
         }
         next_log_loc += log.data_size + sizeof(log);
     }
     return 0;
+}
+
+/*
+ * Returns 0 if log was not found.
+ */
+SNFD_UINT32 snfd_find_last_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
+{
+    //TODO Add memoization
+    
+    SNFD_UINT32 last_log_location = 0;
+    SNFD_UINT32 block;
+    SNFD_UINT32 offset;
+    SNFD_UINT32 memory_location;
+    SNFD_BLOCK_STATE block_state;
+    SNFD_LOG log;
+    for(block = 0; block < SNFD_BLOCKS_COUNT; ++block)
+    {
+        block_state = snfd->blocks[block].state;
+        if(block_state != SNFD_BLOCK_CLEAN || block_state != SNFD_BLOCK_DIRTY) break;
+
+        for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE; ++offset)
+        {
+            memory_location = (block * SNFD_BLOCK_SIZE) + offset;
+            snfd_direct_read(snfd, memory_location, &log, sizeof(log));
+            if(snfd_log_is_invalid(&log) || log.file_number != file_nr)
+            {
+                break;
+            }
+
+            if(log.parent_log == SNFD_LOG_NO_PARENT)
+            {
+                last_log_location = memory_location;
+                block = SNFD_BLOCKS_COUNT;
+                break;
+            }
+        }
+    }
+    return last_log_location;
 }
 
 /*
@@ -105,10 +144,11 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     SNFD_LOG log;
     log.file_number = file_nr;
     log.file_operation = SNFD_LOG_OPERATION_SET;
-    log.flags = SNFD_LOG_ACTIVE;
+    log.state = SNFD_LOG_ACTIVE;
     log.start_loc = destination;
     log.data_size = size;
-    log.next_log = 0;
+    SNFD_UINT32 prev_log = snfd_find_last_log_for_file(snfd, file_nr);
+    log.parent_log = prev_log ? prev_log : SNFD_LOG_NO_PARENT;
 
     snfd_direct_write(snfd, write_loc, &log, sizeof(log));
     snfd_direct_write(snfd, write_loc + sizeof(log), source, size);

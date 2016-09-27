@@ -120,10 +120,10 @@ typedef SNFD_UINT8 SNFD_FILE_OPERATION;
 #define SNFD_LOG_OPERATION_UNUSED_7 0x80
 #define SNFD_LOG_OPERATION_UNUSED_8 0x00
 
-//Log flags
-#define SNFD_LOG_ACTIVE 0xFF
-#define SNFD_LOG_OBSOLETE 0xFE
-#define SNFD_LOG_UNUSED_1 0xFC
+//Log state
+#define SNFD_LOG_INVALID 0xFF
+#define SNFD_LOG_ACTIVE 0xFE
+#define SNFD_LOG_OBSOLETE 0xFC
 #define SNFD_LOG_UNUSED_2 0xF8
 #define SNFD_LOG_UNUSED_3 0xF0
 #define SNFD_LOG_UNUSED_4 0xE0
@@ -131,14 +131,16 @@ typedef SNFD_UINT8 SNFD_FILE_OPERATION;
 #define SNFD_LOG_UNUSED_6 0x80
 #define SNFD_LOG_UNUSED_7 0x00
 
+#define SNFD_LOG_NO_PARENT 0xFFFFFFFF
+
 // Log struct
 typedef struct {
     SNFD_FILE_NUMBER file_number;
     SNFD_FILE_OPERATION file_operation;
-    SNFD_UINT8 flags;
+    SNFD_UINT8 state;
     SNFD_UINT32 start_loc;
     SNFD_UINT32 data_size;
-    SNFD_UINT32 next_log;
+    SNFD_UINT32 parent_log;
 } __attribute__((packed)) SNFD_LOG;
 
 
