@@ -151,3 +151,16 @@ SNFD_BOOL snfd_log_is_invalid(SNFD_LOG * log)
 {
     return log->file_number == 0xFFFF || log->state == SNFD_LOG_INVALID;
 }
+
+/*
+ * Find and mark blocks as deprecated
+ */
+void snfd_garbage_collect(SNFD * snfd)
+{
+}
+
+
+SNFD_UINT16 snfd_calc_block_number_from_physical_addr(SNFD_UINT32 physical_addr)
+{
+    return physical_addr / SNFD_BLOCK_SIZE;
+}

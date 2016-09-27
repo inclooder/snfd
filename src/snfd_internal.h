@@ -23,6 +23,8 @@ SNFD_BOOL snfd_check_block_pattern(SNFD * snfd,
 
 SNFD_BOOL snfd_log_is_invalid(SNFD_LOG * log);
 
+void snfd_garbage_collect(SNFD * snfd);
+
 void snfd_write_block_pattern(SNFD * snfd, 
                               SNFD_UINT16 block_number,
                               const void * pattern, 
@@ -45,5 +47,6 @@ SNFD_ERROR snfd_direct_read(SNFD * snfd,
 SNFD_ERROR snfd_direct_block_erase(SNFD * snfd,
                                    SNFD_UINT16 block_number);
 
+SNFD_UINT16 snfd_calc_block_number_from_physical_addr(SNFD_UINT32 physical_addr);
 
 #endif /* end of include guard: SNFD_INTERNAL_H */
