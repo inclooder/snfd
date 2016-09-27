@@ -96,6 +96,9 @@ SNFD_UINT32 snfd_find_last_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
     return last_log_location;
 }
 
+/*
+ * Returns 0 if log was not found.
+ */
 SNFD_UINT32 snfd_find_first_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
 {
     //TODO Add cache
@@ -224,4 +227,58 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
                           void * destination,
                           SNFD_UINT32 size)
 {
+    SNFD_UINT32 log_loc = snfd_find_first_log_for_file(snfd, file_nr);
+    if(log_loc == 0)
+    {
+        return SNFD_ERROR_FILE_NOT_FOUND;
+    }
+
+    SNFD_LOG log;
+    SNFD_UINT32 data_end;
+    SNFD_UINT32 read_size;
+    SNFD_UINT32 read_loc;
+    SNFD_UINT32 read_offset;
+    SNFD_UINT32 source_end = source + size;
+    while(1)
+    {
+        snfd_direct_read(snfd, log_loc, &log, sizeof(log));
+        if(log.next_log == SNFD_LOG_NO_NEXT) break;
+
+        //Read data and write to destination
+        data_end = log.start_loc + log.data_size;
+        if(source >= log.start_loc && source < data_end)
+        {
+            //  log.start_loc    data_end
+            //     |=================|
+            //                  |=================|
+            //               source            source_end
+            
+            read_offset = source - log.start_loc;
+            read_loc = log_loc + sizeof(log) + read_offset;
+
+            if(data_end < (source_end)) read_size = data_end - source;
+            else read_size = size;
+
+            snfd_direct_read(snfd, read_loc, ((SNFD_UINT8 *)destination) + read_offset, read_size);
+        } 
+        else if(log.start_loc >= source && log.start_loc < (source_end)) 
+        {
+            //               log.start_loc    data_end
+            //                  |=================|
+            //     |=================|
+            //  source            source_end
+
+            read_offset = 0;
+            read_loc = log_loc + sizeof(log) + read_offset;
+
+            if(data_end > source_end) read_size = source_end - log.start_loc;
+            else read_size = log.data_size;
+
+            snfd_direct_read(snfd, read_loc, ((SNFD_UINT8 *)destination) + read_offset, read_size);
+        }
+
+        log_loc = log.next_log;
+    }
+
+    return SNFD_ERROR_NO_ERROR;
 }
