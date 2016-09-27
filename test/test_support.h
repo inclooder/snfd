@@ -17,7 +17,11 @@ SNFD_ERROR flash_write_func (SNFD_UINT32 destination, void * source, SNFD_UINT32
 SNFD_ERROR flash_read_func (SNFD_UINT32 source, void * destination, SNFD_UINT32 size)
 {
     NFE_ERROR error = nfe_read(flash, destination, source, size);
-    if(error != NFE_ERROR_NO_ERROR) TEST_FAIL_MESSAGE("flash read error");
+    if(error != NFE_ERROR_NO_ERROR) {
+        char message[512];
+        sprintf(message, "flash read error (source = %d, size = %d)", source, size);
+        TEST_FAIL_MESSAGE(message);
+    }
 }
 
 SNFD_ERROR flash_block_erase_func (SNFD_UINT16 block_number)
