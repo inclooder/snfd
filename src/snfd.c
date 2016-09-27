@@ -36,27 +36,6 @@ void snfd_cleanup(SNFD * snfd)
 {
 }
 
-/*
- * Finds first free log in the block.
- * Block must be initialized.
- * Returns 0 if block was not found.
- */
-SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd,
-                                        SNFD_UINT16 block_number)
-{
-    SNFD_UINT32 next_log_loc = (block_number * SNFD_BLOCK_SIZE) + sizeof(SNFD_BLOCK_HEADER);
-    SNFD_LOG log;
-    while(next_log_loc < SNFD_BLOCK_SIZE)
-    {
-        snfd_direct_read(snfd, next_log_loc, &log, sizeof(log));
-        if(snfd_log_is_invalid(&log))
-        {
-            return next_log_loc;
-        }
-        next_log_loc += log.data_size + sizeof(log);
-    }
-    return 0;
-}
 
 /*
  * Returns 0 if log was not found.
@@ -135,39 +114,6 @@ SNFD_UINT32 snfd_find_first_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
     return first_log_location;
 }
 
-SNFD_UINT32 snfd_find_space_for_new_log(SNFD * snfd, SNFD_UINT32 size)
-{
-    SNFD_UINT32 i;
-    SNFD_BLOCK_STATE state;
-    SNFD_UINT32 write_loc = 0;
-    SNFD_UINT32 last_free_size = 0;
-    SNFD_UINT32 free_size = 0;
-    SNFD_UINT32 tmp_write_loc = 0;
-    for(i = 0; i < SNFD_BLOCKS_COUNT; ++i) //For each block
-    {
-        state = snfd->blocks[i].state;
-        /*
-         * Check only clean and free blocks, skip others.
-         */
-        if(state != SNFD_BLOCK_CLEAN && state != SNFD_BLOCK_FREE) continue;
-        tmp_write_loc = find_free_log_in_block(snfd, i);
-        free_size = SNFD_BLOCK_SIZE - tmp_write_loc - sizeof(SNFD_LOG);
-        /*
-         * Check if this location is better or it's the first location we found.
-         */
-        if(last_free_size == 0 || 
-           (free_size >= size && last_free_size >= free_size))
-        {
-            last_free_size = free_size;
-            write_loc = tmp_write_loc;
-            if(last_free_size - size <= 10)
-            {
-                break;
-            }
-        }
-    }
-    return write_loc;
-}
 
 /*
  * 1. Find free space to write.

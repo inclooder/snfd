@@ -48,5 +48,7 @@ SNFD_ERROR snfd_direct_block_erase(SNFD * snfd,
                                    SNFD_UINT16 block_number);
 
 SNFD_UINT16 snfd_calc_block_number_from_physical_addr(SNFD_UINT32 physical_addr);
+SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd, SNFD_UINT16 block_number);
+SNFD_UINT32 snfd_find_space_for_new_log(SNFD * snfd, SNFD_UINT32 size);
 
 #endif /* end of include guard: SNFD_INTERNAL_H */
