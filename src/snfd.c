@@ -96,6 +96,42 @@ SNFD_UINT32 snfd_find_last_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
     return last_log_location;
 }
 
+SNFD_UINT32 snfd_find_first_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
+{
+    //TODO Add cache
+
+    SNFD_UINT32 first_log_location = 0;
+    SNFD_UINT32 block;
+    SNFD_UINT32 offset;
+    SNFD_UINT32 memory_location;
+    SNFD_BLOCK_STATE block_state;
+    SNFD_LOG log;
+    for(block = 0; block < SNFD_BLOCKS_COUNT; ++block)
+    {
+        block_state = snfd->blocks[block].state;
+        if(block_state != SNFD_BLOCK_CLEAN || block_state != SNFD_BLOCK_DIRTY) break;
+
+        for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE; ++offset)
+        {
+            memory_location = (block * SNFD_BLOCK_SIZE) + offset;
+            snfd_direct_read(snfd, memory_location, &log, sizeof(log));
+            if(snfd_log_is_invalid(&log) || log.file_number != file_nr)
+            {
+                //Skip invalid logs or those with different file_number.
+                break;
+            }
+
+            if(log.prev_log == SNFD_LOG_NO_PREV)
+            {
+                first_log_location = memory_location;
+                block = SNFD_BLOCKS_COUNT;
+                break;
+            }
+        }
+    }
+    return first_log_location;
+}
+
 SNFD_UINT32 snfd_find_space_for_new_log(SNFD * snfd, SNFD_UINT32 size)
 {
     SNFD_UINT32 i;
