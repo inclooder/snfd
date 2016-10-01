@@ -55,7 +55,7 @@ SNFD_UINT32 snfd_find_last_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
         block_state = snfd->blocks[block].state;
         if(block_state != SNFD_BLOCK_CLEAN && block_state != SNFD_BLOCK_DIRTY) break;
 
-        for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE; ++offset)
+        for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE;)
         {
             memory_location = (block * SNFD_BLOCK_SIZE) + offset;
             snfd_direct_read(snfd, memory_location, &log, sizeof(log));
@@ -63,6 +63,7 @@ SNFD_UINT32 snfd_find_last_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
             {
                 break;
             }
+            offset += sizeof(SNFD_LOG) + log.data_size;
 
             if(log.next_log == SNFD_LOG_NO_NEXT)
             {
