@@ -11,5 +11,6 @@ int main(){
     RUN_TEST(test_snfd_write_block_pattern);
     RUN_TEST(test_snfd_check_block);
     RUN_TEST(test_snfd_file_write_1);
+    RUN_TEST(test_snfd_file_write_2);
     return UNITY_END();
 }

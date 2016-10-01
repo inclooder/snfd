@@ -53,7 +53,7 @@ SNFD_UINT32 snfd_find_last_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
     for(block = 0; block < SNFD_BLOCKS_COUNT; ++block)
     {
         block_state = snfd->blocks[block].state;
-        if(block_state != SNFD_BLOCK_CLEAN || block_state != SNFD_BLOCK_DIRTY) break;
+        if(block_state != SNFD_BLOCK_CLEAN && block_state != SNFD_BLOCK_DIRTY) break;
 
         for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE; ++offset)
         {
@@ -128,6 +128,7 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     // TODO: Split into two write operations if size > SNFD_BLOCK_SIZE - sizeof(SNFD_BLOCK_HEADER)
     SNFD_UINT32 write_loc = snfd_find_space_for_new_log(snfd, size);
 
+    
     if(write_loc == 0){
         return SNFD_ERROR_NO_SPACE_LEFT;
     }
@@ -138,19 +139,20 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     log.state = SNFD_LOG_ACTIVE;
     log.start_loc = destination;
     log.data_size = size;
-    log.prev_log = snfd_find_last_log_for_file(snfd, file_nr);
-    log.prev_log = log.prev_log != 0 ? log.prev_log : SNFD_LOG_NO_PREV;
+    SNFD_UINT32 prev_log = snfd_find_last_log_for_file(snfd, file_nr);
+    prev_log = prev_log != 0 ? prev_log : SNFD_LOG_NO_PREV;
+    log.prev_log = prev_log;
     log.next_log = SNFD_LOG_NO_NEXT;
 
     snfd_direct_write(snfd, write_loc, &log, sizeof(log));
     snfd_direct_write(snfd, write_loc + sizeof(log), source, size);
 
     // Set next log of the parent to write_loc
-    if(log.prev_log != SNFD_LOG_NO_PREV)
+    if(prev_log != SNFD_LOG_NO_PREV)
     {
-        snfd_direct_read(snfd, log.prev_log, &log, sizeof(log));
+        snfd_direct_read(snfd, prev_log, &log, sizeof(log));
         log.next_log = write_loc;
-        snfd_direct_write(snfd, log.prev_log, &log, sizeof(log));
+        snfd_direct_write(snfd, prev_log, &log, sizeof(log));
     }
 
     // TODO: check if write succeded
@@ -216,8 +218,8 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
             //     |=================|
             //  source            source_end
 
-            read_offset = 0;
-            read_loc = log_loc + sizeof(log) + read_offset;
+            read_offset = log.start_loc - source;
+            read_loc = log_loc + sizeof(log);
 
             if(data_end > source_end) read_size = source_end - log.start_loc;
             else read_size = log.data_size;
