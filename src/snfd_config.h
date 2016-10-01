@@ -6,7 +6,7 @@
 #endif
 
 #ifndef SNFD_MAGIC_NUMBER_SIZE
-#define SNFD_MAGIC_NUMBER_SIZE 16
+#define SNFD_MAGIC_NUMBER_SIZE 15
 #endif
 
 
@@ -19,7 +19,7 @@
 #endif
 
 #ifndef SNFD_MAGIC_NUMBER
-#define SNFD_MAGIC_NUMBER "SNFDgandevedidx5"
+#define SNFD_MAGIC_NUMBER "SNFD1234567SNFD"
 #endif
 
 

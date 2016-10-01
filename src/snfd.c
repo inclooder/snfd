@@ -91,7 +91,7 @@ SNFD_UINT32 snfd_find_first_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
     for(block = 0; block < SNFD_BLOCKS_COUNT; ++block)
     {
         block_state = snfd->blocks[block].state;
-        if(block_state != SNFD_BLOCK_CLEAN || block_state != SNFD_BLOCK_DIRTY) break;
+        if(block_state != SNFD_BLOCK_CLEAN && block_state != SNFD_BLOCK_DIRTY) break;
 
         for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE; ++offset)
         {
@@ -138,17 +138,20 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     log.state = SNFD_LOG_ACTIVE;
     log.start_loc = destination;
     log.data_size = size;
-    SNFD_UINT32 prev_log = snfd_find_last_log_for_file(snfd, file_nr);
-    log.prev_log = prev_log ? prev_log : SNFD_LOG_NO_PREV;
+    log.prev_log = snfd_find_last_log_for_file(snfd, file_nr);
+    log.prev_log = log.prev_log != 0 ? log.prev_log : SNFD_LOG_NO_PREV;
     log.next_log = SNFD_LOG_NO_NEXT;
 
     snfd_direct_write(snfd, write_loc, &log, sizeof(log));
     snfd_direct_write(snfd, write_loc + sizeof(log), source, size);
 
     // Set next log of the parent to write_loc
-    snfd_direct_read(snfd, prev_log, &log, sizeof(log));
-    log.next_log = write_loc;
-    snfd_direct_write(snfd, prev_log, &log, sizeof(log));
+    if(log.prev_log != SNFD_LOG_NO_PREV)
+    {
+        snfd_direct_read(snfd, log.prev_log, &log, sizeof(log));
+        log.next_log = write_loc;
+        snfd_direct_write(snfd, log.prev_log, &log, sizeof(log));
+    }
 
     // TODO: check if write succeded
 
@@ -188,7 +191,6 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
     while(1)
     {
         snfd_direct_read(snfd, log_loc, &log, sizeof(log));
-        if(log.next_log == SNFD_LOG_NO_NEXT) break;
 
         //Read data and write to destination
         data_end = log.start_loc + log.data_size;
@@ -223,7 +225,8 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
             snfd_direct_read(snfd, read_loc, ((SNFD_UINT8 *)destination) + read_offset, read_size);
         }
 
-        log_loc = log.next_log;
+        if(log.next_log == SNFD_LOG_NO_NEXT) break;
+        else log_loc = log.next_log;
     }
 
     return SNFD_ERROR_NO_ERROR;

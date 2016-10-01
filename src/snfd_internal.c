@@ -139,7 +139,7 @@ void snfd_read_block_header(SNFD * snfd,
                             SNFD_UINT16 block_number, 
                             SNFD_BLOCK_HEADER * header)
 {
-    snfd_direct_read(snfd, block_number * SNFD_BLOCK_SIZE, header, sizeof(header));
+    snfd_direct_read(snfd, block_number * SNFD_BLOCK_SIZE, header, sizeof(SNFD_BLOCK_HEADER));
 }
 
 
@@ -176,7 +176,8 @@ SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd,
 {
     SNFD_UINT32 next_log_loc = (block_number * SNFD_BLOCK_SIZE) + sizeof(SNFD_BLOCK_HEADER);
     SNFD_LOG log;
-    while(next_log_loc < SNFD_BLOCK_SIZE)
+    SNFD_UINT32 max_log_loc = (block_number * SNFD_BLOCK_SIZE) + SNFD_BLOCK_SIZE;
+    while(next_log_loc < max_log_loc)
     {
         snfd_direct_read(snfd, next_log_loc, &log, sizeof(log));
         if(snfd_log_is_invalid(&log))

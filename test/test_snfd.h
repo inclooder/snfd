@@ -17,7 +17,15 @@ void test_snfd_file_write_1(void)
     snfd.config.block_erase_func = flash_block_erase_func;
     snfd_startup(&snfd);
 
-    //TODO: write a real test
+    char file_content[] = { 'T', 'E', 'S', 'T' };
+    snfd_write_file(&snfd, 10, 0, file_content, sizeof(file_content));
+
+    char read_buff[sizeof(file_content)];
+    snfd_read_file(&snfd, 10, 0, read_buff, sizeof(read_buff));
+
+    TEST_ASSERT_EQUAL_MEMORY(file_content, read_buff, sizeof(file_content));
+
+
 
     snfd_cleanup(&snfd);
     nfe_destroy_flash(flash);
