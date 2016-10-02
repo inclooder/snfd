@@ -36,85 +36,53 @@ void snfd_cleanup(SNFD * snfd)
 {
 }
 
-
 /*
+ * Searches for next log based on order_number.
+ * Returns first log if order_number == 0
  * Returns 0 if log was not found.
  */
-SNFD_UINT32 snfd_find_last_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
+SNFD_UINT32 snfd_find_next_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr, SNFD_UINT32 order_number)
 {
-    //TODO Add cache
-    
-    SNFD_UINT32 last_log_location = 0;
-    SNFD_UINT32 block;
+    SNFD_UINT32 next_log_number = order_number + 1;
+    SNFD_UINT32 block_number;
     SNFD_UINT32 offset;
-    SNFD_UINT32 memory_location;
-    SNFD_BLOCK_STATE block_state;
     SNFD_LOG log;
-    for(block = 0; block < SNFD_BLOCKS_COUNT; ++block)
+    SNFD_BLOCK_STATE block_state;
+    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
     {
-        block_state = snfd->blocks[block].state;
-        if(block_state != SNFD_BLOCK_CLEAN && block_state != SNFD_BLOCK_DIRTY) break;
-
-        for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE;)
+        if(snfd->blocks[block_number].state != SNFD_BLOCK_CLEAN && 
+           snfd->blocks[block_number].state != SNFD_BLOCK_DIRTY)
         {
-            memory_location = (block * SNFD_BLOCK_SIZE) + offset;
-            snfd_direct_read(snfd, memory_location, &log, sizeof(log));
-            if(snfd_log_is_invalid(&log) || log.file_number != file_nr)
+            break;
+        }
+        offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
+        while(offset < SNFD_BLOCK_SIZE)
+        {
+            snfd_direct_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log, sizeof(log));
+            if(snfd_log_is_invalid(&log)) break;
+            if(log.file_number == file_nr && log.order_number == next_log_number)
             {
-                break;
+                return (block_number * SNFD_BLOCK_SIZE) + offset;
             }
-            offset += sizeof(SNFD_LOG) + log.data_size;
 
-            if(log.next_log == SNFD_LOG_NO_NEXT)
-            {
-                last_log_location = memory_location;
-                block = SNFD_BLOCKS_COUNT;
-                break;
-            }
+            offset += sizeof(log) + log.data_size;
         }
     }
-    return last_log_location;
+    return 0;
 }
 
 /*
- * Returns 0 if log was not found.
+ * Returns 0 if not found.
  */
-SNFD_UINT32 snfd_find_first_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
+SNFD_UINT32 snfd_find_last_order_number_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
 {
-    //TODO Add cache
-
-    SNFD_UINT32 first_log_location = 0;
-    SNFD_UINT32 block;
-    SNFD_UINT32 offset;
-    SNFD_UINT32 memory_location;
-    SNFD_BLOCK_STATE block_state;
-    SNFD_LOG log;
-    for(block = 0; block < SNFD_BLOCKS_COUNT; ++block)
+    SNFD_UINT32 order_number = 0;
+    while(snfd_find_next_log_for_file(snfd, file_nr, order_number) != 0)
     {
-        block_state = snfd->blocks[block].state;
-        if(block_state != SNFD_BLOCK_CLEAN && block_state != SNFD_BLOCK_DIRTY) break;
-
-        for(offset = sizeof(SNFD_BLOCK_HEADER); offset < SNFD_BLOCK_SIZE; ++offset)
-        {
-            memory_location = (block * SNFD_BLOCK_SIZE) + offset;
-            snfd_direct_read(snfd, memory_location, &log, sizeof(log));
-            if(snfd_log_is_invalid(&log) || log.file_number != file_nr)
-            {
-                //Skip invalid logs or those with different file_number.
-                break;
-            }
-
-            if(log.prev_log == SNFD_LOG_NO_PREV)
-            {
-                first_log_location = memory_location;
-                block = SNFD_BLOCKS_COUNT;
-                break;
-            }
-        }
+        order_number++;
     }
-    return first_log_location;
+    return order_number;
 }
-
 
 /*
  * 1. Find free space to write.
@@ -140,21 +108,10 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     log.state = SNFD_LOG_ACTIVE;
     log.start_loc = destination;
     log.data_size = size;
-    SNFD_UINT32 prev_log = snfd_find_last_log_for_file(snfd, file_nr);
-    prev_log = prev_log != 0 ? prev_log : SNFD_LOG_NO_PREV;
-    log.prev_log = prev_log;
-    log.next_log = SNFD_LOG_NO_NEXT;
+    log.order_number = snfd_find_last_order_number_for_file(snfd, file_nr) + 1;
 
     snfd_direct_write(snfd, write_loc, &log, sizeof(log));
     snfd_direct_write(snfd, write_loc + sizeof(log), source, size);
-
-    // Set next log of the parent to write_loc
-    if(prev_log != SNFD_LOG_NO_PREV)
-    {
-        snfd_direct_read(snfd, prev_log, &log, sizeof(log));
-        log.next_log = write_loc;
-        snfd_direct_write(snfd, prev_log, &log, sizeof(log));
-    }
 
     // TODO: check if write succeded
 
@@ -179,7 +136,9 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
                           void * destination,
                           SNFD_UINT32 size)
 {
-    SNFD_UINT32 log_loc = snfd_find_first_log_for_file(snfd, file_nr);
+
+    SNFD_UINT32 order_number = 0;
+    SNFD_UINT32 log_loc = snfd_find_next_log_for_file(snfd, file_nr, order_number++);
     if(log_loc == 0)
     {
         return SNFD_ERROR_FILE_NOT_FOUND;
@@ -191,7 +150,7 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
     SNFD_UINT32 read_loc;
     SNFD_UINT32 read_offset;
     SNFD_UINT32 source_end = source + size;
-    while(1)
+    while(log_loc != 0)
     {
         snfd_direct_read(snfd, log_loc, &log, sizeof(log));
 
@@ -228,8 +187,7 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
             snfd_direct_read(snfd, read_loc, ((SNFD_UINT8 *)destination) + read_offset, read_size);
         }
 
-        if(log.next_log == SNFD_LOG_NO_NEXT) break;
-        else log_loc = log.next_log;
+        log_loc = snfd_find_next_log_for_file(snfd, file_nr, order_number++);
     }
 
     return SNFD_ERROR_NO_ERROR;

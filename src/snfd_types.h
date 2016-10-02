@@ -132,18 +132,14 @@ typedef SNFD_UINT8 SNFD_FILE_OPERATION;
 #define SNFD_LOG_UNUSED_6 0x80
 #define SNFD_LOG_UNUSED_7 0x00
 
-#define SNFD_LOG_NO_PREV 0xFFFFFFFF
-#define SNFD_LOG_NO_NEXT 0xFFFFFFFF
-
 // Log struct
 typedef struct {
     SNFD_FILE_NUMBER file_number;
+    SNFD_UINT32 order_number;
     SNFD_FILE_OPERATION file_operation;
     SNFD_UINT8 state;
     SNFD_UINT32 start_loc;
     SNFD_UINT32 data_size;
-    SNFD_UINT32 prev_log;
-    SNFD_UINT32 next_log;
 } __attribute__((packed)) SNFD_LOG;
 
 
