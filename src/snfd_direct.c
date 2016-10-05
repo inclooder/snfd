@@ -17,7 +17,7 @@ SNFD_ERROR snfd_direct_read(SNFD * snfd,
 }
 
 SNFD_ERROR snfd_direct_block_erase(SNFD * snfd,
-                                   SNFD_UINT16 block_number)
+                                   SNFD_BLOCK_NUMBER block_number)
 {
     return snfd->config.block_erase_func(block_number);
 }

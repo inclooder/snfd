@@ -20,7 +20,7 @@ SNFD_BOOL snfd_block_is_state_change_allowed(SNFD_BLOCK_STATE old_state,
 }
 
 SNFD_ERROR snfd_block_state_change(SNFD * snfd,
-                                   SNFD_UINT16 block_nr,
+                                   SNFD_BLOCK_NUMBER block_nr,
                                    SNFD_BLOCK_STATE new_state)
 {
     SNFD_BLOCK_STATE old_state = snfd->blocks[block_nr].state;

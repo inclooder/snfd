@@ -5,7 +5,7 @@
 /*
  * Erase and initialize block.
  */
-void snfd_erase_and_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
+void snfd_erase_and_initialize_block(SNFD * snfd, SNFD_BLOCK_NUMBER block_number)
 {
     snfd_direct_block_erase(snfd, block_number);
     SNFD_BLOCK_HEADER header;
@@ -23,7 +23,7 @@ void snfd_erase_and_initialize_block(SNFD * snfd, SNFD_UINT16 block_number)
  * Writes a pattern to the block
  */
 void snfd_write_block_pattern(SNFD * snfd, 
-                              SNFD_UINT16 block_number, 
+                              SNFD_BLOCK_NUMBER block_number, 
                               const void * pattern, 
                               SNFD_UINT16 pattern_size)
 {
@@ -56,7 +56,7 @@ void snfd_write_block_pattern(SNFD * snfd,
  * Checks if block follows specific pattern
  */
 SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, 
-                                   SNFD_UINT16 block_number, 
+                                   SNFD_BLOCK_NUMBER block_number, 
                                    const void * pattern, 
                                    SNFD_UINT16 pattern_size)
 {
@@ -87,7 +87,7 @@ SNFD_BOOL snfd_check_block_pattern(SNFD * snfd,
 /*
  * Erases a block, checks if every byte is 0xFF and then writes some pattern then checks again.
  */
-SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_UINT16 block_number)
+SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_BLOCK_NUMBER block_number)
 {
     snfd_direct_block_erase(snfd, block_number);
     const SNFD_UINT8 clean_block_pattern[1] = { 0xFF };
@@ -136,7 +136,7 @@ SNFD_BOOL snfd_is_block_dirty(SNFD * snfd, SNFD_BLOCK_HEADER * header)
 }
 
 void snfd_read_block_header(SNFD * snfd, 
-                            SNFD_UINT16 block_number, 
+                            SNFD_BLOCK_NUMBER block_number, 
                             SNFD_BLOCK_HEADER * header)
 {
     snfd_direct_read(snfd, block_number * SNFD_BLOCK_SIZE, header, sizeof(SNFD_BLOCK_HEADER));
@@ -172,7 +172,7 @@ SNFD_UINT16 snfd_calc_block_number_from_physical_addr(SNFD_UINT32 physical_addr)
  * Returns 0 if block was not found.
  */
 SNFD_UINT32 snfd_find_free_log_in_block(SNFD * snfd,
-                                        SNFD_UINT16 block_number)
+                                        SNFD_BLOCK_NUMBER block_number)
 {
     SNFD_UINT32 next_log_loc = (block_number * SNFD_BLOCK_SIZE) + sizeof(SNFD_BLOCK_HEADER);
     SNFD_LOG log;

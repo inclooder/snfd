@@ -44,7 +44,7 @@ void snfd_cleanup(SNFD * snfd)
 SNFD_UINT32 snfd_find_next_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr, SNFD_UINT32 order_number)
 {
     SNFD_UINT32 next_log_number = order_number + 1;
-    SNFD_UINT32 block_number;
+    SNFD_BLOCK_NUMBER block_number;
     SNFD_UINT32 offset;
     SNFD_LOG log;
     SNFD_BLOCK_STATE block_state;
@@ -115,7 +115,7 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
 
     // TODO: check if write succeded
 
-    SNFD_UINT16 block_nr = snfd_calc_block_number_from_physical_addr(write_loc);
+    SNFD_BLOCK_NUMBER block_nr = snfd_calc_block_number_from_physical_addr(write_loc);
     if(snfd->blocks[block_nr].state == SNFD_BLOCK_FREE){
         //change state to SNFD_CLEAN
         snfd_block_state_change(snfd, block_nr, SNFD_BLOCK_CLEAN);

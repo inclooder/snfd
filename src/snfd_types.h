@@ -63,10 +63,13 @@
 #define SNFD_BLOCK_UNUSED_4 0x80
 #define SNFD_BLOCK_UNUSED_5 0x00
 
+typedef SNFD_UINT16 SNFD_BLOCK_NUMBER;
+typedef SNFD_UINT8 SNFD_BLOCK_STATE;
+
 // Direct functions
 typedef SNFD_ERROR (*SNFD_DIRECT_WRITE_FUNC) (SNFD_UINT32 destination, void * source, SNFD_UINT32 size);
 typedef SNFD_ERROR (*SNFD_DIRECT_READ_FUNC) (SNFD_UINT32 source, void * destination, SNFD_UINT32 size);
-typedef SNFD_ERROR (*SNFD_DIRECT_BLOCK_ERASE_FUNC) (SNFD_UINT16 block_number);
+typedef SNFD_ERROR (*SNFD_DIRECT_BLOCK_ERASE_FUNC) (SNFD_BLOCK_NUMBER block_number);
 
 // SNFD configuration structure
 typedef struct {
@@ -76,7 +79,6 @@ typedef struct {
 } SNFD_CONFIG;
 
 
-typedef SNFD_UINT8 SNFD_BLOCK_STATE;
 
 // Block header struct
 
