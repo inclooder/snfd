@@ -85,7 +85,7 @@ SNFD_UINT32 snfd_log_find_prev_with_collision(SNFD * snfd,
     SNFD_UINT32 data_end;
     SNFD_UINT32 source_end = file_offset + size;
     while(log_number != 0){
-        log_loc = snfd_log_find_prev(snfd, file_nr, log_number);
+        log_loc = snfd_log_find_prev(snfd, file_nr, log_number--);
         snfd_log_read(snfd, log_loc, &log);
         data_end = log.start_loc + log.data_size;
         SNFD_UINT32 collision_size = 0;
