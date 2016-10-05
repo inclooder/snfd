@@ -37,46 +37,13 @@ void snfd_cleanup(SNFD * snfd)
 }
 
 /*
- * Searches for next log based on order_number.
- * Returns first log if order_number == 0
- * Returns 0 if log was not found.
- */
-SNFD_UINT32 snfd_find_next_log_for_file(SNFD * snfd, 
-                                        SNFD_FILE_NUMBER file_nr, 
-                                        SNFD_UINT32 order_number)
-{
-    SNFD_UINT32 next_log_number = order_number + 1;
-    SNFD_BLOCK_NUMBER block_number;
-    SNFD_UINT32 offset;
-    SNFD_LOG log;
-    SNFD_BLOCK_STATE block_state;
-    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; ++block_number)
-    {
-        if(!snfd_block_has_logs(snfd, block_number)) break;
-        offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
-        while(offset < SNFD_BLOCK_SIZE)
-        {
-            snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log);
-            if(snfd_log_is_invalid(&log)) break; //Break on first invalid log
-            if(log.file_number == file_nr && log.order_number == next_log_number)
-            {
-                return (block_number * SNFD_BLOCK_SIZE) + offset;
-            }
-
-            offset += sizeof(log) + log.data_size;
-        }
-    }
-    return 0;
-}
-
-/*
  * Returns 0 if not found.
  */
 SNFD_UINT32 snfd_find_last_order_number_for_file(SNFD * snfd, 
                                                  SNFD_FILE_NUMBER file_nr)
 {
     SNFD_UINT32 order_number = 0;
-    while(snfd_find_next_log_for_file(snfd, file_nr, order_number) != 0)
+    while(snfd_log_find_next(snfd, file_nr, order_number) != 0)
     {
         order_number++;
     }
@@ -130,7 +97,7 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
 {
 
     SNFD_UINT32 order_number = 0;
-    SNFD_UINT32 log_loc = snfd_find_next_log_for_file(snfd, file_nr, order_number++);
+    SNFD_UINT32 log_loc = snfd_log_find_next(snfd, file_nr, order_number++);
     if(log_loc == 0)
     {
         return SNFD_ERROR_FILE_NOT_FOUND;
@@ -179,7 +146,7 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
             snfd_direct_read(snfd, read_loc, ((SNFD_UINT8 *)destination) + read_offset, read_size);
         }
 
-        log_loc = snfd_find_next_log_for_file(snfd, file_nr, order_number++);
+        log_loc = snfd_log_find_next(snfd, file_nr, order_number++);
     }
 
     return SNFD_ERROR_NO_ERROR;
