@@ -74,18 +74,6 @@ typedef struct {
 } SNFD_CONFIG;
 
 
-// Fragment flags
-#define SNFD_FRAGMENT_FLAG_ROOT 1
-#define SNFD_FRAGMENT_FLAG_DEPRECATED 2
-
-// Fragment struct
-typedef struct {
-    SNFD_UINT32 file_id;
-    SNFD_UINT8 operation;
-    SNFD_UINT32 parent;
-    SNFD_UINT8 flags;
-} __attribute__((packed)) SNFD_FRAGMENT;
-
 typedef SNFD_UINT8 SNFD_BLOCK_STATE;
 
 // Block header struct
