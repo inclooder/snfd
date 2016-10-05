@@ -43,15 +43,17 @@
 #define SNFD_ERROR_INVALID_PARAM 1
 #define SNFD_ERROR_NO_SPACE_LEFT 2
 #define SNFD_ERROR_FILE_NOT_FOUND 3
+#define SNFD_ERROR_BLOCK_STATE_CHANGE_NOT_ALLOWED 4
 
 // Block states
 // Available transitions
+// NOT_INITIALIZED -> FREE
 // FREE -> CLEAN
 // CLEAN -> DIRTY
-// DIRTY -> FREE (erase needed)
+// DIRTY -> NOT_INITIALIZED (erase needed)
 // * -> BROKEN
 
-#define SNFD_BLOCK_UNUSED_1 0xFF
+#define SNFD_BLOCK_NOT_INITIALIZED 0xFF
 #define SNFD_BLOCK_FREE 0xFE
 #define SNFD_BLOCK_CLEAN 0xFC
 #define SNFD_BLOCK_DIRTY 0xF8

@@ -118,13 +118,7 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
     SNFD_UINT16 block_nr = snfd_calc_block_number_from_physical_addr(write_loc);
     if(snfd->blocks[block_nr].state == SNFD_BLOCK_FREE){
         //change state to SNFD_CLEAN
-        SNFD_BLOCK_HEADER block_header;
-        snfd_read_block_header(snfd, block_nr, &block_header);
-        block_header.state = SNFD_BLOCK_CLEAN;
-        snfd_direct_write(snfd, block_nr * SNFD_BLOCK_SIZE,
-                          &block_header,
-                          sizeof(block_header));
-        snfd->blocks[block_nr].state = SNFD_BLOCK_CLEAN;
+        snfd_block_state_change(snfd, block_nr, SNFD_BLOCK_CLEAN);
     }
 
     // TODO: garbage collect
