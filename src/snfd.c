@@ -50,11 +50,7 @@ SNFD_UINT32 snfd_find_next_log_for_file(SNFD * snfd, SNFD_FILE_NUMBER file_nr, S
     SNFD_BLOCK_STATE block_state;
     for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
     {
-        if(snfd->blocks[block_number].state != SNFD_BLOCK_CLEAN && 
-           snfd->blocks[block_number].state != SNFD_BLOCK_DIRTY)
-        {
-            break;
-        }
+        if(!snfd_block_has_logs(snfd, block_number)) break;
         offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
         while(offset < SNFD_BLOCK_SIZE)
         {

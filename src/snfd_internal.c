@@ -222,3 +222,15 @@ SNFD_UINT32 snfd_find_space_for_new_log(SNFD * snfd, SNFD_UINT32 size)
     }
     return write_loc;
 }
+
+SNFD_BOOL snfd_block_has_logs(SNFD * snfd, SNFD_BLOCK_NUMBER block_nr)
+{
+        if(snfd->blocks[block_nr].state == SNFD_BLOCK_CLEAN ||
+           snfd->blocks[block_nr].state == SNFD_BLOCK_DIRTY)
+        {
+            return SNFD_TRUE;
+        } else {
+            return SNFD_FALSE;
+        }
+}
+
