@@ -22,6 +22,7 @@ SNFD_BOOL snfd_check_block_pattern(SNFD * snfd,
                                    SNFD_UINT16 pattern_size);
 
 SNFD_BOOL snfd_log_is_invalid(SNFD_LOG * log);
+SNFD_ERROR snfd_log_read(SNFD * snfd, SNFD_UINT32 source, SNFD_LOG * log);
 
 void snfd_garbage_collect(SNFD * snfd);
 

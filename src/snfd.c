@@ -56,7 +56,7 @@ SNFD_UINT32 snfd_find_next_log_for_file(SNFD * snfd,
         offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
         while(offset < SNFD_BLOCK_SIZE)
         {
-            snfd_direct_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log, sizeof(log));
+            snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log);
             if(snfd_log_is_invalid(&log)) break; //Break on first invalid log
             if(log.file_number == file_nr && log.order_number == next_log_number)
             {
