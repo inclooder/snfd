@@ -1,6 +1,3 @@
-#ifndef SNFD_BLOCK_H
-#define SNFD_BLOCK_H
-
 #include "snfd_internal.h"
 
 SNFD_BOOL snfd_block_is_state_change_allowed(SNFD_BLOCK_STATE old_state, 
@@ -36,6 +33,3 @@ SNFD_ERROR snfd_block_state_change(SNFD * snfd,
                       sizeof(block_header));
     snfd->blocks[block_nr].state = new_state;
 }
-
-
-#endif /* end of include guard: SNFD_BLOCK_H */
