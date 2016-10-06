@@ -21,10 +21,9 @@ guard :bundler do
 end
 
 guard :shell do
-  watch /^(src\/.*)|(test\/.*)$/ do
+  watch(/^(src\/.*)|(test\/.*)$/) do
     `mkdir -p build`
     `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
-    `cd build && make`
-    `cd build && ./unit_tests`
+    `cd build && make && ./unit_tests`
   end
 end
