@@ -42,12 +42,17 @@ void snfd_cleanup(SNFD * snfd)
 SNFD_UINT32 snfd_find_last_order_number_for_file(SNFD * snfd, 
                                                  SNFD_FILE_NUMBER file_nr)
 {
-    SNFD_UINT32 order_number = 0;
-    while(snfd_log_find_next(snfd, file_nr, order_number) != 0)
+    SNFD_LOG log;
+    SNFD_LOG next_log;
+    if(snfd_log_find_first(snfd, file_nr, &log) == 0)
     {
-        order_number++;
+        return 0;
     }
-    return order_number;
+    while(snfd_log_find_next(snfd, &log, &next_log) != 0)
+    {
+        memcpy(&log, &next_log, sizeof(SNFD_LOG));
+    }
+    return log.order_number;
 }
 
 /*
@@ -86,7 +91,20 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
         snfd_block_state_change(snfd, block_nr, SNFD_BLOCK_CLEAN);
     }
 
-    // TODO: garbage collect
+    SNFD_UINT32 collision_log = snfd_log_find_prev_with_collision(snfd,
+                                                                  file_nr,
+                                                                  log.order_number,
+                                                                  destination,
+                                                                  size);
+
+    if(collision_log != 0)
+    {
+        //Mark log as inactive
+        //Change block state to SNFD_DIRTY
+    }
+  
+
+    snfd_garbage_collect(snfd);
 }
 
 SNFD_ERROR snfd_read_file(SNFD * snfd,
@@ -96,23 +114,21 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
                           SNFD_UINT32 size)
 {
 
-    SNFD_UINT32 order_number = 0;
-    SNFD_UINT32 log_loc = snfd_log_find_next(snfd, file_nr, order_number++);
+    SNFD_LOG log;
+    SNFD_UINT32 log_loc = snfd_log_find_first(snfd, file_nr, &log);
     if(log_loc == 0)
     {
         return SNFD_ERROR_FILE_NOT_FOUND;
     }
 
-    SNFD_LOG log;
+    SNFD_LOG next_log;
     SNFD_UINT32 data_end;
     SNFD_UINT32 read_size;
     SNFD_UINT32 read_loc;
     SNFD_UINT32 read_offset;
     SNFD_UINT32 source_end = source + size;
-    while(log_loc != 0)
+    for(;;)
     {
-        snfd_direct_read(snfd, log_loc, &log, sizeof(log));
-
         //Read data and write to destination
         data_end = log.start_loc + log.data_size;
         if(source >= log.start_loc && source < data_end)
@@ -146,7 +162,12 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
             snfd_direct_read(snfd, read_loc, ((SNFD_UINT8 *)destination) + read_offset, read_size);
         }
 
-        log_loc = snfd_log_find_next(snfd, file_nr, order_number++);
+        log_loc = snfd_log_find_next(snfd, &log, &next_log);
+        if(log_loc != 0){
+            memcpy(&log, &next_log, sizeof(SNFD_LOG));
+        } else {
+            break;
+        }
     }
 
     return SNFD_ERROR_NO_ERROR;

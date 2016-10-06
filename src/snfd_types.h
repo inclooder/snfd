@@ -117,7 +117,7 @@ typedef SNFD_UINT8 SNFD_FILE_OPERATION;
 #define SNFD_LOG_INVALID 0xFF
 #define SNFD_LOG_ACTIVE 0xFE
 #define SNFD_LOG_OBSOLETE 0xFC
-#define SNFD_LOG_UNUSED_2 0xF8
+#define SNFD_LOG_INACTIVE 0xF8
 #define SNFD_LOG_UNUSED_3 0xF0
 #define SNFD_LOG_UNUSED_4 0xE0
 #define SNFD_LOG_UNUSED_5 0xC0
@@ -134,5 +134,10 @@ typedef struct {
     SNFD_UINT32 data_size;
 } __attribute__((packed)) SNFD_LOG;
 
+// Logs collision
+
+typedef struct {
+    SNFD_UINT32 collision_size;
+} SNFD_LOG_COLLISION;
 
 #endif /* end of include guard: SNFD_TYPES_H */

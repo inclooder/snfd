@@ -154,10 +154,23 @@ SNFD_BOOL snfd_log_is_invalid(SNFD_LOG * log)
 }
 
 /*
- * Find and mark blocks as deprecated
+ * Find dirty blocks and erase them
  */
 void snfd_garbage_collect(SNFD * snfd)
 {
+    SNFD_BLOCK_NUMBER block_number;
+    SNFD_UINT16 free_blocks = 0;
+    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
+    {
+        if(snfd->blocks[block_number].state == SNFD_BLOCK_FREE) free_blocks++;
+    }
+    if(free_blocks >= 2) return; //Do nothing if there are at least two free blocks.
+
+    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
+    {
+        if(snfd->blocks[block_number].state != SNFD_BLOCK_DIRTY) break;
+        //TODO: count deprecated logs
+    }
 }
 
 

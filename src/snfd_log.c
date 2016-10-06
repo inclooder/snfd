@@ -1,4 +1,5 @@
 #include "snfd_internal.h"
+#include "string.h"
 
 SNFD_ERROR snfd_log_read(SNFD * snfd, SNFD_UINT32 source, SNFD_LOG * log)
 {
@@ -6,36 +7,72 @@ SNFD_ERROR snfd_log_read(SNFD * snfd, SNFD_UINT32 source, SNFD_LOG * log)
 }
 
 /*
- * Searches for next log based on order_number.
- * Returns first log if order_number == 0
  * Returns 0 if log was not found.
  */
-SNFD_UINT32 snfd_log_find_next(SNFD * snfd, 
-                               SNFD_FILE_NUMBER file_nr, 
-                               SNFD_UINT32 order_number)
+SNFD_UINT32 snfd_log_find_first(SNFD * snfd, SNFD_FILE_NUMBER file_nr, SNFD_LOG * log_out)
 {
-    SNFD_UINT32 next_log_number = order_number + 1;
     SNFD_BLOCK_NUMBER block_number;
+    SNFD_UINT32 next_log_number = 0xFFFFFFFF;
     SNFD_UINT32 offset;
-    SNFD_LOG log;
-    SNFD_BLOCK_STATE block_state;
+    SNFD_LOG log_tmp;
+    SNFD_UINT32 log_loc = 0;
     for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; ++block_number)
     {
         if(!snfd_block_has_logs(snfd, block_number)) break;
         offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
         while(offset < SNFD_BLOCK_SIZE)
         {
-            snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log);
-            if(snfd_log_is_invalid(&log)) break; //Break on first invalid log
-            if(log.file_number == file_nr && log.order_number == next_log_number)
+            snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log_tmp);
+            if(snfd_log_is_invalid(&log_tmp)) break; //Break on first invalid log
+            if(log_tmp.file_number == file_nr &&
+               log_tmp.order_number > 0 &&
+               log_tmp.order_number < next_log_number)
             {
-                return (block_number * SNFD_BLOCK_SIZE) + offset;
+                memcpy(log_out, &log_tmp, sizeof(SNFD_LOG));
+                log_loc = (block_number * SNFD_BLOCK_SIZE) + offset;
+                next_log_number = log_tmp.order_number;
             }
 
-            offset += sizeof(log) + log.data_size;
+            offset += sizeof(log_tmp) + log_tmp.data_size;
         }
     }
-    return 0;
+    return log_loc;
+}
+
+/*
+ * Searches for next log.
+ * Returns 0 if log was not found.
+ */
+SNFD_UINT32 snfd_log_find_next(SNFD * snfd, 
+                               SNFD_LOG * current_log, 
+                               SNFD_LOG * next_log)
+{
+    SNFD_BLOCK_NUMBER block_number;
+    SNFD_UINT32 next_log_number = 0xFFFFFFFF;
+    SNFD_UINT32 offset;
+    SNFD_LOG log_tmp;
+    SNFD_UINT32 log_loc = 0;
+    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; ++block_number)
+    {
+        if(!snfd_block_has_logs(snfd, block_number)) break;
+        offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
+        while(offset < SNFD_BLOCK_SIZE)
+        {
+            snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log_tmp);
+            if(snfd_log_is_invalid(&log_tmp)) break; //Break on first invalid log
+            if(log_tmp.file_number == current_log->file_number &&
+               log_tmp.order_number > current_log->order_number &&
+               log_tmp.order_number < next_log_number)
+            {
+                memcpy(next_log, &log_tmp, sizeof(SNFD_LOG));
+                next_log_number = log_tmp.order_number;
+                log_loc = (block_number * SNFD_BLOCK_SIZE) + offset;
+            }
+
+            offset += sizeof(log_tmp) + log_tmp.data_size;
+        }
+    }
+    return log_loc;
 }
 
 /*
@@ -50,7 +87,6 @@ SNFD_UINT32 snfd_log_find_prev(SNFD * snfd,
     SNFD_UINT32 prev_log_number = log_number;
     SNFD_UINT32 offset;
     SNFD_LOG log;
-    SNFD_BLOCK_STATE block_state;
     for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; ++block_number)
     {
         if(!snfd_block_has_logs(snfd, block_number)) break;
@@ -106,3 +142,4 @@ SNFD_UINT32 snfd_log_find_prev_with_collision(SNFD * snfd,
     }
     return 0;
 }
+
