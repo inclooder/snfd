@@ -143,3 +143,12 @@ SNFD_UINT32 snfd_log_find_prev_with_collision(SNFD * snfd,
     return 0;
 }
 
+SNFD_ERROR snfd_log_state_change(SNFD * snfd, SNFD_UINT32 log_loc, SNFD_LOG_STATE new_state)
+{
+    SNFD_LOG log;
+    snfd_log_read(snfd, log_loc, &log);
+    log.state = new_state;
+    snfd_direct_write(snfd, log_loc, &log, sizeof(log));
+    return SNFD_ERROR_NO_ERROR;
+}
+

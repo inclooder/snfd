@@ -101,6 +101,7 @@ typedef struct {
 
 typedef SNFD_UINT16 SNFD_FILE_NUMBER;
 typedef SNFD_UINT8 SNFD_FILE_OPERATION;
+typedef SNFD_UINT8 SNFD_LOG_STATE;
 
 //File operations
 #define SNFD_LOG_OPERATION_UNUSED_1 0xFF
@@ -116,7 +117,7 @@ typedef SNFD_UINT8 SNFD_FILE_OPERATION;
 //Log state
 #define SNFD_LOG_INVALID 0xFF
 #define SNFD_LOG_ACTIVE 0xFE
-#define SNFD_LOG_OBSOLETE 0xFC
+#define SNFD_LOG_OVERWRITTEN 0xFC
 #define SNFD_LOG_INACTIVE 0xF8
 #define SNFD_LOG_UNUSED_3 0xF0
 #define SNFD_LOG_UNUSED_4 0xE0
@@ -129,7 +130,7 @@ typedef struct {
     SNFD_FILE_NUMBER file_number;
     SNFD_UINT32 order_number;
     SNFD_FILE_OPERATION file_operation;
-    SNFD_UINT8 state;
+    SNFD_LOG_STATE state;
     SNFD_UINT32 start_loc;
     SNFD_UINT32 data_size;
 } __attribute__((packed)) SNFD_LOG;

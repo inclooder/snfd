@@ -66,19 +66,30 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
                            void * source, SNFD_UINT32 size)
 {
     // TODO: Split into two write operations if size > SNFD_BLOCK_SIZE - sizeof(SNFD_BLOCK_HEADER)
+    SNFD_LOG log;
+    log.order_number = snfd_find_last_order_number_for_file(snfd, file_nr) + 1;
+    SNFD_UINT32 collision_log = snfd_log_find_prev_with_collision(snfd,
+                                                                  file_nr,
+                                                                  log.order_number,
+                                                                  destination,
+                                                                  size);
+
+    if(collision_log != 0)
+    {
+        snfd_log_state_change(snfd, collision_log, SNFD_LOG_OVERWRITTEN);
+        snfd_block_state_change(snfd, snfd_calc_block_number_from_physical_addr(collision_log), SNFD_BLOCK_DIRTY);
+    }
     SNFD_UINT32 write_loc = snfd_find_space_for_new_log(snfd, size);
 
     if(write_loc == 0){
         return SNFD_ERROR_NO_SPACE_LEFT;
     }
     
-    SNFD_LOG log;
     log.file_number = file_nr;
     log.file_operation = SNFD_LOG_OPERATION_SET;
     log.state = SNFD_LOG_ACTIVE;
     log.start_loc = destination;
     log.data_size = size;
-    log.order_number = snfd_find_last_order_number_for_file(snfd, file_nr) + 1;
 
     snfd_direct_write(snfd, write_loc, &log, sizeof(log));
     snfd_direct_write(snfd, write_loc + sizeof(log), source, size);
@@ -90,19 +101,6 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
         //change state to SNFD_CLEAN
         snfd_block_state_change(snfd, block_nr, SNFD_BLOCK_CLEAN);
     }
-
-    SNFD_UINT32 collision_log = snfd_log_find_prev_with_collision(snfd,
-                                                                  file_nr,
-                                                                  log.order_number,
-                                                                  destination,
-                                                                  size);
-
-    if(collision_log != 0)
-    {
-        //Mark log as inactive
-        //Change block state to SNFD_DIRTY
-    }
-  
 
     snfd_garbage_collect(snfd);
     return SNFD_ERROR_NO_ERROR;
