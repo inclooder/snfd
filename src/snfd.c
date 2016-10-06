@@ -171,3 +171,27 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
 
     return SNFD_ERROR_NO_ERROR;
 }
+
+SNFD_UINT32 snfd_file_calc_size(SNFD * snfd, SNFD_FILE_NUMBER file_nr)
+{
+    SNFD_UINT32 file_size = 0;
+    SNFD_UINT32 tmp_size;
+    SNFD_UINT32 offset;
+    SNFD_LOG log_tmp;
+    SNFD_BLOCK_NUMBER block_number;
+    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; ++block_number)
+    {
+        if(!snfd_block_has_logs(snfd, block_number)) break;
+        offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
+        while(offset < SNFD_BLOCK_SIZE)
+        {
+            snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log_tmp);
+            if(snfd_log_is_invalid(&log_tmp)) break; //Break on first invalid log
+            tmp_size = log_tmp.start_loc + log_tmp.data_size;
+            if(tmp_size > file_size) file_size = tmp_size;
+
+            offset += sizeof(log_tmp) + log_tmp.data_size;
+        }
+    }
+    return file_size;
+}

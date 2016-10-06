@@ -16,6 +16,8 @@ SNFD_ERROR snfd_read_file(SNFD * snfd,
                           void * destination,
                           SNFD_UINT32 size);
 
+SNFD_UINT32 snfd_file_calc_size(SNFD * snfd, SNFD_FILE_NUMBER file_nr);
+
 
 void snfd_cleanup(SNFD * snfd);
 
