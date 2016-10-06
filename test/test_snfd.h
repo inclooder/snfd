@@ -90,4 +90,39 @@ void test_snfd_file_write_3(void)
     nfe_destroy_flash(flash);
 }
 
+/*
+ * Write data till free space is exhausted.
+ */
+void test_snfd_file_write_4(void)
+{
+    flash = nfe_create_flash(256, 4096);
+    nfe_clear_flash(flash, 0xFF);
+
+    SNFD snfd;
+    snfd.config.write_func = flash_write_func;
+    snfd.config.read_func = flash_read_func;
+    snfd.config.block_erase_func = flash_block_erase_func;
+    snfd_startup(&snfd);
+
+    char data[4000];
+
+    SNFD_ERROR error;
+    SNFD_UINT32 i;
+    SNFD_UINT32 j;
+    for(j = 0; j < 256; ++j)
+    {
+        for(i = 0; i < 4000; ++i)
+        {
+            data[i] = 'a' + j;
+        }
+        error = snfd_write_file(&snfd, 10 + j, 0, data, sizeof(data));
+        TEST_ASSERT_EQUAL_MESSAGE(SNFD_ERROR_NO_ERROR, error, "shouldn't return error");
+    }
+    error = snfd_write_file(&snfd, 3, 0, data, sizeof(data));
+    TEST_ASSERT_EQUAL_MESSAGE(SNFD_ERROR_NO_SPACE_LEFT, error, "should return ERROR_NO_SPACE_LEFT");
+
+    snfd_cleanup(&snfd);
+    nfe_destroy_flash(flash);
+}
+
 #endif /* end of include guard: TEST_SNFD_H */

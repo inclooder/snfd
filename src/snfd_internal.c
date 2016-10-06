@@ -213,17 +213,14 @@ SNFD_UINT32 snfd_find_space_for_new_log(SNFD * snfd, SNFD_UINT32 size)
     for(i = 0; i < SNFD_BLOCKS_COUNT; ++i) //For each block
     {
         state = snfd->blocks[i].state;
-        /*
-         * Check only clean and free blocks, skip others.
-         */
-        if(state != SNFD_BLOCK_CLEAN && state != SNFD_BLOCK_FREE) continue;
+        //Check only clean, dirty and free blocks, skip others.
+        if(state != SNFD_BLOCK_CLEAN && state != SNFD_BLOCK_FREE && state != SNFD_BLOCK_DIRTY) continue;
         tmp_write_loc = snfd_find_free_log_in_block(snfd, i);
-        free_size = SNFD_BLOCK_SIZE - tmp_write_loc - sizeof(SNFD_LOG);
-        /*
-         * Check if this location is better or it's the first location we found.
-         */
+        free_size = SNFD_BLOCK_SIZE - (tmp_write_loc - (i * SNFD_BLOCK_SIZE));
+        if(free_size < size) continue; //Skip locations that are too small
+        // Check if this location is better or it's the first location we found.
         if(last_free_size == 0 || 
-           (free_size >= size && last_free_size >= free_size))
+           free_size < last_free_size)
         {
             last_free_size = free_size;
             write_loc = tmp_write_loc;

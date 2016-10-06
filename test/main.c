@@ -13,5 +13,6 @@ int main(){
     RUN_TEST(test_snfd_file_write_1);
     RUN_TEST(test_snfd_file_write_2);
     RUN_TEST(test_snfd_file_write_3);
+    RUN_TEST(test_snfd_file_write_4);
     return UNITY_END();
 }

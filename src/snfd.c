@@ -105,6 +105,7 @@ SNFD_ERROR snfd_write_file(SNFD * snfd,
   
 
     snfd_garbage_collect(snfd);
+    return SNFD_ERROR_NO_ERROR;
 }
 
 SNFD_ERROR snfd_read_file(SNFD * snfd,
