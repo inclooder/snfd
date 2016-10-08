@@ -6,6 +6,17 @@ void snfd_check_segment_intersection(
         SNFD_SEGMENT_INTERSECTION * inter
 )
 {
+    if(a->begin > b->end || b->begin > a->end) 
+    {
+        //No intersection
+        inter->size = 0;
+        inter->int_start_a = -1;
+        inter->int_end_a = -1;
+        inter->int_start_b = -1;
+        inter->int_end_b = -1;
+        return;
+    }
+
     if(a->begin >= b->begin)
     {
         if(a->end > b->end) 
