@@ -117,8 +117,6 @@ void test_snfd_log_find_prev_1(void)
     prev_log = snfd_log_find_prev(&snfd, 3, 2);
     TEST_ASSERT_EQUAL(16, prev_log);
 
-    nfe_dump_to_file(flash, "/tmp/flashdump");
-
     snfd_cleanup(&snfd);
     nfe_destroy_flash(flash);
 }
