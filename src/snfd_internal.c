@@ -1,108 +1,7 @@
+#include "snfd.h"
 #include "snfd_internal.h"
 #include <string.h>
 #include <stdio.h>
-
-/*
- * Erase and initialize block.
- */
-void snfd_erase_and_initialize_block(SNFD * snfd, SNFD_BLOCK_NUMBER block_number)
-{
-    snfd_direct_block_erase(snfd, block_number);
-    SNFD_BLOCK_HEADER header;
-    memcpy(header.magic_number, 
-           SNFD_MAGIC_NUMBER,
-           sizeof(header.magic_number));
-
-    header.state = SNFD_BLOCK_FREE;
-
-    snfd_direct_write(snfd, block_number * SNFD_BLOCK_SIZE,
-                      &header, sizeof(header));
-}
-
-/*
- * Writes a pattern to the block
- */
-void snfd_write_block_pattern(SNFD * snfd, 
-                              SNFD_BLOCK_NUMBER block_number, 
-                              const void * pattern, 
-                              SNFD_UINT16 pattern_size)
-{
-    SNFD_UINT32 current_pattern = 0;
-    SNFD_UINT32 i;
-    for(i = 0; i < SNFD_BLOCK_SIZE;) // For each byte in the block
-    {
-        // Calc how much memory to write
-        SNFD_UINT32 write_size = snfd_calc_read_size(
-                sizeof(snfd->buffer), 
-                SNFD_BLOCK_SIZE, i
-        );
-        // Calc write location
-        SNFD_UINT32 write_loc = (block_number * SNFD_BLOCK_SIZE) + i;
-        SNFD_UINT32 j;
-        for(j = 0; j < write_size; ++j) // Write each byte to the buffer
-        {
-            SNFD_UINT8 byte = ((SNFD_UINT8 *)pattern)[current_pattern];
-            snfd->buffer[j] = byte;
-             // Set next pattern
-            current_pattern = (current_pattern + 1) % pattern_size;
-        }
-        // Write prepared buffer to the flash memory
-        snfd_direct_write(snfd, write_loc, snfd->buffer, write_size);
-        i += write_size; // Move forward by number of bytes writen
-    }
-}
-
-/*
- * Checks if block follows specific pattern
- */
-SNFD_BOOL snfd_check_block_pattern(SNFD * snfd, 
-                                   SNFD_BLOCK_NUMBER block_number, 
-                                   const void * pattern, 
-                                   SNFD_UINT16 pattern_size)
-{
-    SNFD_UINT32 current_pattern = 0;
-    SNFD_UINT32 i;
-    for(i = 0; i < SNFD_BLOCK_SIZE;)
-    {
-        SNFD_UINT32 read_size = snfd_calc_read_size(
-                sizeof(snfd->buffer), 
-                SNFD_BLOCK_SIZE, i
-        );
-        SNFD_UINT32 read_loc = (block_number * SNFD_BLOCK_SIZE) + i;
-        snfd_direct_read(snfd, read_loc, snfd->buffer, read_size);
-        SNFD_UINT32 j;
-        for(j = 0; j < read_size; ++j)
-        {
-            SNFD_UINT8 expected_byte = ((SNFD_UINT8 *)pattern)[current_pattern];
-            if(snfd->buffer[j] != expected_byte) {
-                return SNFD_FALSE;
-            }
-            current_pattern = (current_pattern + 1) % pattern_size;
-        }
-        i += read_size;
-    }
-    return SNFD_TRUE;
-}
-
-/*
- * Erases a block, checks if every byte is 0xFF and then writes some pattern then checks again.
- */
-SNFD_BOOL snfd_check_block(SNFD * snfd, SNFD_BLOCK_NUMBER block_number)
-{
-    snfd_direct_block_erase(snfd, block_number);
-    const SNFD_UINT8 clean_block_pattern[1] = { 0xFF };
-    SNFD_BOOL result = snfd_check_block_pattern(
-            snfd, 
-            block_number, 
-            clean_block_pattern,
-            sizeof(clean_block_pattern)
-    );
-    if(result != SNFD_TRUE) return SNFD_FALSE;
-
-    const SNFD_UINT8 pattern[4] = { 0x5A, 0x55, 0x5A, 0x55 };
-    snfd_write_block_pattern(snfd, block_number, pattern, sizeof(pattern));
-    return snfd_check_block_pattern(snfd, block_number, pattern, sizeof(pattern));
-}
 
 SNFD_UINT32 snfd_calc_read_size(SNFD_UINT32 read_buffer_size, 
                                 SNFD_UINT32 block_size, 
@@ -153,23 +52,145 @@ SNFD_BOOL snfd_log_is_invalid(SNFD_LOG * log)
     return log->file_number == 0xFFFF || log->state == SNFD_LOG_INVALID;
 }
 
+void snfd_block_erase_safe(SNFD * snfd, SNFD_BLOCK_NUMBER block_nr)
+{
+    
+    SNFD_LOG log_tmp;
+    SNFD_LOG log_tmp2;
+    SNFD_UINT32 offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
+    SNFD_FILE_NUMBER file_number;
+    SNFD_UINT32 offset2;
+    SNFD_BLOCK_NUMBER block_number;
+    while(offset < SNFD_BLOCK_SIZE)
+    {
+        snfd_log_read(snfd, (block_nr * SNFD_BLOCK_SIZE) + offset, &log_tmp);
+        if(snfd_log_is_invalid(&log_tmp)) break; //Break on first invalid log
+        if(log_tmp.state == SNFD_LOG_INACTIVE) break;
+        file_number = log_tmp.file_number;
+
+        //Mark all logs of this file to moved
+        for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; ++block_number)
+        {
+            offset2 = sizeof(SNFD_BLOCK_HEADER);
+            while(offset2 < SNFD_BLOCK_SIZE)
+            {
+                snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset2, &log_tmp2);
+                if(snfd_log_is_invalid(&log_tmp2)) break; //Break on first invalid log
+
+                if(log_tmp2.file_number == file_number && log_tmp2.state != SNFD_LOG_INACTIVE)
+                {
+                    snfd_log_state_change(snfd, (block_number * SNFD_BLOCK_SIZE) + offset2, SNFD_LOG_MOVED);
+                }
+
+                offset2 += sizeof(SNFD_LOG) + log_tmp2.data_size;
+            }
+        }
+        
+        //Move file to the new location
+        SNFD_UINT32 file_size = snfd_file_calc_size(snfd, file_number);
+        SNFD_UINT32 write_loc = snfd_find_space_for_new_log(snfd, file_size);
+        if(write_loc == 0){
+            return; //Error no space left!
+        }
+        snfd_log_create(snfd, file_number, 0, file_size, write_loc);
+
+        SNFD_UINT32 remaining_bytes = file_size;
+        SNFD_UINT32 read_size;
+        while(remaining_bytes > 0)
+        {
+            read_size = sizeof(snfd->buffer);
+            if(read_size > remaining_bytes)
+            {
+                read_size = remaining_bytes;
+            }
+            
+            snfd_read_file(snfd, file_number, file_size - remaining_bytes, snfd->buffer, read_size);
+            snfd_direct_write(snfd, write_loc + sizeof(SNFD_LOG) + file_size - remaining_bytes, snfd->buffer, read_size);
+
+            remaining_bytes -= read_size;
+        }
+
+        //Mark all logs with state MOVED as INACTIVE
+        for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; ++block_number)
+        {
+            offset2 = sizeof(SNFD_BLOCK_HEADER);
+            while(offset2 < SNFD_BLOCK_SIZE)
+            {
+                snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset2, &log_tmp2);
+                if(snfd_log_is_invalid(&log_tmp2)) break; //Break on first invalid log
+                if(log_tmp2.file_number == file_number && log_tmp2.state == SNFD_LOG_MOVED)
+                {
+                    snfd_log_state_change(snfd, (block_number * SNFD_BLOCK_SIZE) + offset2, SNFD_LOG_INACTIVE);
+                }
+
+                offset2 += sizeof(SNFD_LOG) + log_tmp2.data_size;
+            }
+        }
+        
+
+        offset += sizeof(log_tmp) + log_tmp.data_size;
+    }
+    //Erase a block here
+    snfd_erase_and_initialize_block(snfd, block_nr);
+}
+
+void snfd_erase_most_dirty_block(SNFD * snfd)
+{
+    SNFD_BLOCK_NUMBER block_number;
+    SNFD_UINT32 offset;
+    SNFD_LOG log_tmp;
+    SNFD_INT32 block_to_erase = -1;
+    SNFD_UINT32 overwritten_logs = 0;
+    SNFD_UINT32 overwritten_logs_tmp = 0;
+    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
+    {
+        if(snfd->blocks[block_number].state != SNFD_BLOCK_DIRTY) continue;
+
+        offset = sizeof(SNFD_BLOCK_HEADER); //Skip block header
+        overwritten_logs_tmp = 0;
+        while(offset < SNFD_BLOCK_SIZE)
+        {
+            snfd_log_read(snfd, (block_number * SNFD_BLOCK_SIZE) + offset, &log_tmp);
+            if(snfd_log_is_invalid(&log_tmp)) break; //Break on first invalid log
+            
+            if(log_tmp.state == SNFD_LOG_OVERWRITTEN || log_tmp.state == SNFD_LOG_INACTIVE)
+            {
+                overwritten_logs_tmp++;
+            }
+
+            offset += sizeof(log_tmp) + log_tmp.data_size;
+        }
+        if(overwritten_logs_tmp > overwritten_logs)
+        {
+            overwritten_logs = overwritten_logs_tmp;
+            block_to_erase = block_number;
+        }
+    }
+    if(block_to_erase != -1)
+    {
+        //Move data and erase block
+        snfd_block_erase_safe(snfd, block_to_erase);
+    }
+}
+
 /*
  * Find dirty blocks and erase them
  */
 void snfd_garbage_collect(SNFD * snfd)
 {
-    SNFD_BLOCK_NUMBER block_number;
-    SNFD_UINT16 free_blocks = 0;
-    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
     {
-        if(snfd->blocks[block_number].state == SNFD_BLOCK_FREE) free_blocks++;
+        SNFD_BLOCK_NUMBER block_number;
+        SNFD_UINT16 free_blocks = 0;
+        for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
+        {
+            if(snfd->blocks[block_number].state == SNFD_BLOCK_FREE) free_blocks++;
+        }
+        if(free_blocks >= 4) return; //Do nothing if there are at least four free blocks.
     }
-    if(free_blocks >= 2) return; //Do nothing if there are at least two free blocks.
-
-    for(block_number = 0; block_number < SNFD_BLOCKS_COUNT; block_number++)
+    SNFD_UINT32 i;
+    for(i = 0; i < 4; ++i)
     {
-        if(snfd->blocks[block_number].state != SNFD_BLOCK_DIRTY) break;
-        //TODO: count deprecated logs
+        snfd_erase_most_dirty_block(snfd);
     }
 }
 

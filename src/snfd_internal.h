@@ -11,7 +11,8 @@ SNFD_UINT32 snfd_log_find_prev_with_collision(SNFD * snfd,
                                              SNFD_FILE_NUMBER file_nr,
                                              SNFD_UINT32 log_number,
                                              SNFD_UINT32 file_offset,
-                                             SNFD_UINT32 size);
+                                             SNFD_UINT32 size,
+                                             SNFD_LOG * collision_log);
 SNFD_UINT32 snfd_log_find_next(SNFD * snfd, 
                                SNFD_LOG * current_log, 
                                SNFD_LOG * next_log);
