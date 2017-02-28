@@ -160,6 +160,38 @@ void test_snfd_file_write_5(void)
 }
 
 /*
+ * Write multiple files
+ */
+void test_snfd_file_write_multiple_files(void)
+{
+    flash = nfe_create_flash(256, 4096);
+    nfe_clear_flash(flash, 0xFF);
+    SNFD snfd;
+    snfd.config.write_func = flash_write_func;
+    snfd.config.read_func = flash_read_func;
+    snfd.config.block_erase_func = flash_block_erase_func;
+    snfd_startup(&snfd);
+    int i;
+    char file1_content[] = { 'F', 'I', 'L', 'E', '1' };
+    char file2_content[] = { 'F', 'I', 'L', 'E', '2' };
+    char read_buff1[sizeof(file1_content)] = { 0 };
+    char read_buff2[sizeof(file2_content)] = { 0 };
+    for(i = 0; i < 10; i++)
+    {
+        snfd_write_file(&snfd, 1, 0, file1_content, sizeof(file1_content));
+        snfd_read_file(&snfd, 1, 0, read_buff1, sizeof(read_buff1));
+        snfd_write_file(&snfd, 2, 0, file2_content, sizeof(file2_content));
+        snfd_read_file(&snfd, 2, 0, read_buff2, sizeof(read_buff2));
+    }
+
+    TEST_ASSERT_EQUAL_MEMORY(file1_content, read_buff1, sizeof(file1_content));
+    TEST_ASSERT_EQUAL_MEMORY(file2_content, read_buff2, sizeof(file2_content));
+
+    snfd_cleanup(&snfd);
+    nfe_destroy_flash(flash);
+}
+
+/*
  * Check if read operation overflows the buffer
  */
 void test_snfd_file_read_1(void)

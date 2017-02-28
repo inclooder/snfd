@@ -16,6 +16,7 @@ int main(){
     RUN_TEST(test_snfd_file_write_3);
     RUN_TEST(test_snfd_file_write_4);
     RUN_TEST(test_snfd_file_write_5);
+    RUN_TEST(test_snfd_file_write_multiple_files);
     RUN_TEST(test_snfd_file_read_1);
     RUN_TEST(test_snfd_file_calc_size);
     RUN_TEST(test_snfd_check_segment_intersection_1);
